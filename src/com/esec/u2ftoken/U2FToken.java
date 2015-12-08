@@ -29,11 +29,7 @@ public class U2FToken extends Applet {
 	public void process(APDU apdu) {
 		// Good practice: Return 9000 on SELECT
 		if (selectingApplet()) {
-//			apdu.setIncomingAndReceive();
-			byte[] buffer = apdu.getBuffer();
-			Util.arrayCopyNonAtomic(version, (short)0, buffer, (short)0, (short)version.length);
-			apdu.setOutgoingAndSend((short)0, (short)version.length);
-			
+			getSelectResponse(apdu);
 			return;
 		}
 
@@ -45,6 +41,16 @@ public class U2FToken extends Applet {
 			// good practice: If you don't know the INStruction, say so:
 			ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
 		}
+	}
+	
+	/**
+	 * —°‘Òapplet ±£¨∑µªÿ"U2F_V2"
+	 * @param apdu
+	 */
+	private void getSelectResponse(APDU apdu) {
+		byte[] buffer = apdu.getBuffer();
+		Util.arrayCopyNonAtomic(version, (short)0, buffer, (short)0, (short)version.length);
+		apdu.setOutgoingAndSend((short)0, (short)version.length);
 	}
 
 }
