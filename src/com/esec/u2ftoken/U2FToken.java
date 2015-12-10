@@ -5,9 +5,20 @@ import javacard.framework.Applet;
 import javacard.framework.ISO7816;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
+import javacard.security.ECPrivateKey;
+import javacard.security.ECPublicKey;
+import javacard.security.KeyPair;
 
 public class U2FToken extends Applet {
-
+	
+	public static final byte CLA_7816 = 0x00;
+	
+	public static final byte INS_U2F_REGISTER = 0x01; // Registration command
+	public static final byte INS_U2F_AUTHENTICATE = 0x02; // Authenticate/sign command
+	public static final byte INS_U2F_VERSION = 0x03; //Read version string command
+	public static final byte INS_U2F_CHECK_REGISTER = 0x04; // Registration command that incorporates checking key handles
+	public static final byte INS_U2F_AUTHENTICATE_BATCH = 0x05; // Authenticate/sign command for a batch of key handles
+	
 	/**
 	 * 存储attestation证书的二进制文件。FID是EF01
 	 */
@@ -39,9 +50,16 @@ public class U2FToken extends Applet {
 			return;
 		}
 
+		// 获取APDU的header
 		byte[] buf = apdu.getBuffer();
+		byte cla = buf[ISO7816.OFFSET_CLA];
+		byte p1 = buf[ISO7816.OFFSET_P1];
+		byte p2 = buf[ISO7816.OFFSET_P2];
+		short lc = (short)(buf[ISO7816.OFFSET_LC] & 0x00FF);
+		
 		switch (buf[ISO7816.OFFSET_INS]) {
-		case (byte) 0x00:
+		case (byte) INS_U2F_REGISTER: // U2F_REGISTER，注册指令
+			register(apdu, cla, p1, p2, lc);
 			break;
 		default:
 			// good practice: If you don't know the INStruction, say so:
@@ -59,4 +77,26 @@ public class U2FToken extends Applet {
 		apdu.setOutgoingAndSend((short)0, (short)version.length);
 	}
 
+	/**
+	 * 处理注册请求
+	 * @param apdu
+	 * @param cla 0x00
+	 * @param p1 待定，u2f协议例子中是0x03，不知道为什么。不知道会不会是test-of-user-presence
+	 * @param p2
+	 * @param lc
+	 */
+	private void register(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		if (cla != CLA_7816) {
+			ISOException.throwIt(ISO7816.SW_CLA_NOT_SUPPORTED);
+		}
+		
+		//生成认证公私钥
+		KeyPair pair = SecP256r1.newKeyPair();
+		pair.genKeyPair();
+		ECPublicKey pubKey = (ECPublicKey) pair.getPublic();
+		ECPrivateKey privKey = (ECPrivateKey) pair.getPrivate();
+		
+		// 生成KeyHandle
+		//TODO 生成KeyHandle，里面的AppID似乎只能是Client传过来的AppID的hash？
+	}
 }

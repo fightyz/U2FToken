@@ -10,7 +10,7 @@ import javacard.security.KeyPair;
 /** 
  * @author Yang Zhou 
  * @version 创建时间：2015-12-10 上午10:00:46 
- * secp256r1的参数初始化封装类 
+ * secp256r1的参数初始化封装类，参数来自bouncycastle的java实现
  */
 public class SecP256r1 {
 	
