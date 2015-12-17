@@ -13,6 +13,7 @@ public class U2FToken extends Applet {
 	
 	public static final byte CLA_7816 = 0x00;
 	
+	public static final byte INS_FOR_TEST = 0x00;
 	public static final byte INS_U2F_REGISTER = 0x01; // Registration command
 	public static final byte INS_U2F_AUTHENTICATE = 0x02; // Authenticate/sign command
 	public static final byte INS_U2F_VERSION = 0x03; //Read version string command
@@ -58,6 +59,9 @@ public class U2FToken extends Applet {
 		short lc = (short)(buf[ISO7816.OFFSET_LC] & 0x00FF);
 		
 		switch (buf[ISO7816.OFFSET_INS]) {
+		case (byte) INS_FOR_TEST:
+			
+			break;
 		case (byte) INS_U2F_REGISTER: // U2F_REGISTER£¬×¢²áÖ¸Áî
 			register(apdu, cla, p1, p2, lc);
 			break;
