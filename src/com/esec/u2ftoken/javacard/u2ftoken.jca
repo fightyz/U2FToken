@@ -1,0 +1,1192 @@
+// converted by version 1.3
+// on Sat Dec 19 21:15:53 CST 2015
+
+.package com/esec/u2ftoken {
+	.aid 0xA0:0x0:0x0:0x6:0x47:0x2F:0x0;
+	.version 1.0;
+
+	.imports {
+		0xA0:0x0:0x0:0x0:0x62:0x0:0x1 1.0;		//java/lang
+		0xA0:0x0:0x0:0x0:0x62:0x1:0x2 1.3;		//javacard/security
+		0xA0:0x0:0x0:0x0:0x62:0x1:0x1 1.3;		//javacard/framework
+		0xA0:0x0:0x0:0x0:0x62:0x2:0x1 1.3;		//javacardx/crypto
+	}
+
+	.applet {
+		0xA0:0x0:0x0:0x6:0x47:0x2F:0x0:0x1 U2FToken;
+	}
+
+	.constantPool {
+		// 0
+		instanceFieldRef byte BaseFile/mFID;
+		// 1
+		instanceFieldRef byte BaseFile/mSFI;
+		// 2
+		instanceFieldRef byte[] BinaryEF/mFileContent;
+		// 3
+		instanceFieldRef byte SecretKey/mKeyType;
+		// 4
+		instanceFieldRef 1.10 SecretKey/mDESKeyInstance;
+		// 5
+		instanceFieldRef 1.20 SecretKey/mAESKeyInstance;
+		// 6
+		instanceFieldRef byte SecretKeys/mKeyType;
+		// 7
+		instanceFieldRef 1.10 SecretKeys/mDESKeyInstance;
+		// 8
+		instanceFieldRef 1.20 SecretKeys/mAESKeyInstance;
+		// 9
+		instanceFieldRef BinaryEF U2FToken/attestationCertFile;
+		// 10
+		virtualMethodRef 1.16.2()Ljavacard/security/PrivateKey;;		// getPrivate()Ljavacard/security/PrivateKey;
+			.descriptor	Ljavacard/security/PrivateKey;	1.2;
+
+		// 11
+		classRef 1.18;		// javacard/security/ECPrivateKey
+		// 12
+		virtualMethodRef 1.16.3()Ljavacard/security/PublicKey;;		// getPublic()Ljavacard/security/PublicKey;
+			.descriptor	Ljavacard/security/PublicKey;	1.3;
+
+		// 13
+		classRef 1.19;		// javacard/security/ECPublicKey
+		// 14
+		staticFieldRef byte[] SecP256r1/p;
+		// 15
+		staticFieldRef byte[] SecP256r1/a;
+		// 16
+		staticFieldRef byte[] SecP256r1/b;
+		// 17
+		staticFieldRef byte[] SecP256r1/G;
+		// 18
+		staticFieldRef byte[] SecP256r1/r;
+		// 19
+		staticFieldRef SecretKey SecretKey/mAESSecretKey;
+		// 20
+		classRef SecretKey;
+		// 21
+		staticMethodRef SecretKey/<init>(B)V;
+		// 22
+		staticFieldRef SecretKey SecretKey/mDESSecretKey;
+		// 23
+		staticMethodRef BaseFile/<init>()V;
+		// 24
+		staticMethodRef 0.0.0()V;		// java/lang/Object.<init>()V
+		// 25
+		classRef 1.12;		// javacard/security/CryptoException
+		// 26
+		staticMethodRef 1.13.0(BSZ)Ljavacard/security/Key;;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+			.descriptor	Ljavacard/security/Key;	1.0;
+
+		// 27
+		classRef 1.10;		// javacard/security/DESKey
+		// 28
+		staticMethodRef 2.8.13(SB)[B;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+		// 29
+		staticMethodRef 2.16.3([BSSB)S;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+		// 30
+		classRef 1.20;		// javacard/security/AESKey
+		// 31
+		classRef 0.2;		// java/lang/Exception
+		// 32
+		staticMethodRef 3.1.0(BZ)Ljavacardx/crypto/Cipher;;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+			.descriptor	Ljavacardx/crypto/Cipher;	3.1;
+
+		// 33
+		virtualMethodRef 3.1.3(Ljavacard/security/Key;B)V;		// init(Ljavacard/security/Key;B)V
+			.descriptor	Ljavacard/security/Key;	1.0;
+
+		// 34
+		virtualMethodRef 3.1.1([BSS[BS)S;		// doFinal([BSS[BS)S
+		// 35
+		staticFieldRef SecretKeys SecretKeys/mAESSecretKey;
+		// 36
+		classRef SecretKeys;
+		// 37
+		staticMethodRef SecretKeys/<init>(B)V;
+		// 38
+		staticFieldRef SecretKeys SecretKeys/mDESSecretKey;
+		// 39
+		classRef 1.16;		// javacard/security/KeyPair
+		// 40
+		staticMethodRef 1.16.0(BS)V;		// javacard/security/KeyPair.<init>(BS)V
+		// 41
+		virtualMethodRef 1.12.1()S;		// getReason()S
+		// 42
+		staticMethodRef 2.3.0()V;		// javacard/framework/Applet.<init>()V
+		// 43
+		classRef BinaryEF;
+		// 44
+		staticMethodRef BinaryEF/<init>(BB)V;
+		// 45
+		staticMethodRef 2.7.1(S)V;		// javacard/framework/ISOException.throwIt(S)V
+		// 46
+		staticFieldRef byte[] U2FToken/attestationCert;
+		// 47
+		virtualMethodRef BinaryEF/setFileContent([B)V;
+		// 48
+		classRef U2FToken;
+		// 49
+		staticMethodRef U2FToken/<init>()V;
+		// 50
+		virtualMethodRef 2.3.1()V;		// register()V
+		// 51
+		virtualMethodRef 2.3.3()Z;		// selectingApplet()Z
+		// 52
+		staticMethodRef U2FToken/getSelectResponse(Ljavacard/framework/APDU;)V;
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+		// 53
+		virtualMethodRef 2.10.1()[B;		// getBuffer()[B
+		// 54
+		staticMethodRef U2FToken/encrypt(Ljavacard/framework/APDU;BBBS)V;
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+		// 55
+		staticMethodRef U2FToken/decrypt(Ljavacard/framework/APDU;BBBS)V;
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+		// 56
+		staticMethodRef U2FToken/u2fregister(Ljavacard/framework/APDU;BBBS)V;
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+		// 57
+		staticFieldRef byte[] U2FToken/version;
+		// 58
+		staticMethodRef 2.16.2([BS[BSS)S;		// javacard/framework/Util.arrayCopyNonAtomic([BS[BSS)S
+		// 59
+		virtualMethodRef 2.10.8(SS)V;		// setOutgoingAndSend(SS)V
+		// 60
+		staticMethodRef SecP256r1/newKeyPair()Ljavacard/security/KeyPair;;
+			.descriptor	Ljavacard/security/KeyPair;	1.16;
+
+		// 61
+		virtualMethodRef 1.16.1()V;		// genKeyPair()V
+		// 62
+		staticMethodRef SecretKeys/getInstance(B)Lcom/esec/u2ftoken/SecretKeys;;
+		// 63
+		virtualMethodRef SecretKeys/keyWrap([BSS[BSB)V;
+		// 64
+		virtualMethodRef 2.10.6()S;		// setIncomingAndReceive()S
+	}
+
+	.class public BaseFile 0 extends 0.0 {		// extends java/lang/Object
+
+		.fields {
+			public byte mFID 0;		// B
+			public byte mSFI 1;		// B
+			public static final byte FILE_TYPE_BINARY = 2;		// B
+		}
+
+		.publicMethodTable 1 {
+			equals(Ljava/lang/Object;)Z;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public <init>()V 0 {
+			.stack 1;
+			.locals 0;
+
+				L0:	aload_0;
+					invokespecial 24;		// java/lang/Object.<init>()V
+					return;
+		}
+
+	}
+
+	.class public BinaryEF 1 extends BaseFile {
+
+		.fields {
+			private byte[] mFileContent 0;		// [B
+		}
+
+		.publicMethodTable 1 {
+			equals(Ljava/lang/Object;)Z;
+			createBinaryContent(S)V;
+			setFileContent([B)V;
+			getFileContent()[B;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public <init>(BB)V 0 {
+			.stack 2;
+			.locals 0;
+
+				L0:	aload_0;
+					invokespecial 23;		// com/esec/u2ftoken/BaseFile.<init>()V
+					aload_0;
+					sload_1;
+					putfield_b 0;		// byte com/esec/u2ftoken/BaseFile.mFID
+					aload_0;
+					sload_2;
+					putfield_b 1;		// byte com/esec/u2ftoken/BaseFile.mSFI
+					return;
+		}
+
+		.method public createBinaryContent(S)V 1 {
+			.stack 2;
+			.locals 0;
+
+				L0:	aload_0;
+					sload_1;
+					newarray 11;
+					putfield_a 2;		// reference com/esec/u2ftoken/BinaryEF.mFileContent
+					return;
+		}
+
+		.method public setFileContent([B)V 2 {
+			.stack 2;
+			.locals 0;
+
+				L0:	aload_0;
+					aload_1;
+					putfield_a 2;		// reference com/esec/u2ftoken/BinaryEF.mFileContent
+					return;
+		}
+
+		.method public getFileContent()[B 3 {
+			.stack 1;
+			.locals 0;
+
+				L0:	getfield_a_this 2;		// reference com/esec/u2ftoken/BinaryEF.mFileContent
+					areturn;
+		}
+
+	}
+
+	.class public SecP256r1 2 extends 0.0 {		// extends java/lang/Object
+
+		.fields {
+			private static final byte[] p = {-1,-1,-1,-1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};		// [B
+			private static final byte[] a = {-1,-1,-1,-1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-4};		// [B
+			private static final byte[] b = {90,-58,53,-40,-86,58,-109,-25,-77,-21,-67,85,118,-104,-122,-68,101,29,6,-80,-52,83,-80,-10,59,-50,60,62,39,-46,96,75};		// [B
+			private static final byte[] G = {4,107,23,-47,-14,-31,44,66,71,-8,-68,-26,-27,99,-92,64,-14,119,3,125,-127,45,-21,51,-96,-12,-95,57,69,-40,-104,-62,-106,79,-29,66,-30,-2,26,127,-101,-114,-25,-21,74,124,15,-98,22,43,-50,51,87,107,49,94,-50,-53,-74,64,104,55,-65,81,-11};		// [B
+			private static final byte[] r = {-1,-1,-1,-1,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-68,-26,-6,-83,-89,23,-98,-124,-13,-71,-54,-62,-4,99,37,81};		// [B
+		}
+
+		.publicMethodTable 1 {
+			equals(Ljava/lang/Object;)Z;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public <init>()V 0 {
+			.stack 1;
+			.locals 0;
+
+				L0:	aload_0;
+					invokespecial 24;		// java/lang/Object.<init>()V
+					return;
+		}
+
+		.method public static newKeyPair()Ljavacard/security/KeyPair; 1 {
+			.stack 4;
+			.locals 3;
+
+			.descriptor	Ljavacard/security/KeyPair;	1.16;
+
+				L0:	aconst_null;
+					astore_0;
+				L1:	new 39;		// javacard/security/KeyPair
+					dup;
+					sconst_5;
+					sspush 256;
+					invokespecial 40;		// javacard/security/KeyPair.<init>(BS)V
+					astore_0;
+				L2:	goto L4;
+				L3:	astore_1;
+					aload_1;
+					invokevirtual 41;		// getReason()S
+					sstore_2;
+					sload_2;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L4:	aload_0;
+					invokevirtual 10;		// getPrivate()Ljavacard/security/PrivateKey;
+					checkcast 0 11;		// T_CLASSORINTERFACE javacard/security/ECPrivateKey
+					astore_1;
+					aload_0;
+					invokevirtual 12;		// getPublic()Ljavacard/security/PublicKey;
+					checkcast 0 13;		// T_CLASSORINTERFACE javacard/security/ECPublicKey
+					astore_2;
+					aload_1;
+					getstatic_a 14;		// reference com/esec/u2ftoken/SecP256r1.p
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 11 4;		// javacard/security/ECPrivateKey
+					aload_1;
+					getstatic_a 15;		// reference com/esec/u2ftoken/SecP256r1.a
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 11 7;		// javacard/security/ECPrivateKey
+					aload_1;
+					getstatic_a 16;		// reference com/esec/u2ftoken/SecP256r1.b
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 11 8;		// javacard/security/ECPrivateKey
+					aload_1;
+					getstatic_a 17;		// reference com/esec/u2ftoken/SecP256r1.G
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 11 9;		// javacard/security/ECPrivateKey
+					aload_1;
+					getstatic_a 18;		// reference com/esec/u2ftoken/SecP256r1.r
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 11 10;		// javacard/security/ECPrivateKey
+					aload_2;
+					getstatic_a 14;		// reference com/esec/u2ftoken/SecP256r1.p
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 13 4;		// javacard/security/ECPublicKey
+					aload_2;
+					getstatic_a 15;		// reference com/esec/u2ftoken/SecP256r1.a
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 13 7;		// javacard/security/ECPublicKey
+					aload_2;
+					getstatic_a 16;		// reference com/esec/u2ftoken/SecP256r1.b
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 13 8;		// javacard/security/ECPublicKey
+					aload_2;
+					getstatic_a 17;		// reference com/esec/u2ftoken/SecP256r1.G
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 13 9;		// javacard/security/ECPublicKey
+					aload_2;
+					getstatic_a 18;		// reference com/esec/u2ftoken/SecP256r1.r
+					sconst_0;
+					sconst_0;
+					invokeinterface 4 13 10;		// javacard/security/ECPublicKey
+					aload_0;
+					areturn;
+			.exceptionTable {
+				// start_block end_block handler_block catch_type_index
+				L1 L2 L3 25;
+			}
+		}
+
+	}
+
+	.class public SecretKey 3 extends 0.0 {		// extends java/lang/Object
+
+		.fields {
+			private 1.10 mDESKeyInstance 0;		// Ljavacard/security/DESKey;
+			private 1.20 mAESKeyInstance 1;		// Ljavacard/security/AESKey;
+			private byte mKeyType 2;		// B
+			public static final byte MODE_ENCRYPT = 1;		// B
+			public static final byte MODE_DECRYPT = 2;		// B
+			public static final byte KEY_TYPE_AES = 1;		// B
+			public static final byte KEY_TYPE_DES = 2;		// B
+			public static SecretKey mDESSecretKey 0;		// Lcom/esec/u2ftoken/SecretKey;
+			public static SecretKey mAESSecretKey 1;		// Lcom/esec/u2ftoken/SecretKey;
+		}
+
+		.publicMethodTable 1 {
+			equals(Ljava/lang/Object;)Z;
+			keyWrap([BSS[BSB)V;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public static getInstance(B)Lcom/esec/u2ftoken/SecretKey; 0 {
+			.stack 3;
+			.locals 0;
+
+				L0:	sload_0;
+					sconst_1;
+					if_scmpne L4;
+				L1:	getstatic_a 19;		// reference com/esec/u2ftoken/SecretKey.mAESSecretKey
+					ifnull L3;
+				L2:	getstatic_a 19;		// reference com/esec/u2ftoken/SecretKey.mAESSecretKey
+					areturn;
+				L3:	new 20;		// com/esec/u2ftoken/SecretKey
+					dup;
+					sconst_1;
+					invokespecial 21;		// com/esec/u2ftoken/SecretKey.<init>(B)V
+					putstatic_a 19;		// reference com/esec/u2ftoken/SecretKey.mAESSecretKey
+					getstatic_a 19;		// reference com/esec/u2ftoken/SecretKey.mAESSecretKey
+					areturn;
+				L4:	sload_0;
+					sconst_2;
+					if_scmpne L8;
+				L5:	getstatic_a 22;		// reference com/esec/u2ftoken/SecretKey.mDESSecretKey
+					ifnull L7;
+				L6:	getstatic_a 22;		// reference com/esec/u2ftoken/SecretKey.mDESSecretKey
+					areturn;
+				L7:	new 20;		// com/esec/u2ftoken/SecretKey
+					dup;
+					sconst_2;
+					invokespecial 21;		// com/esec/u2ftoken/SecretKey.<init>(B)V
+					putstatic_a 22;		// reference com/esec/u2ftoken/SecretKey.mDESSecretKey
+					getstatic_a 22;		// reference com/esec/u2ftoken/SecretKey.mDESSecretKey
+					areturn;
+				L8:	new 20;		// com/esec/u2ftoken/SecretKey
+					dup;
+					sload_0;
+					invokespecial 21;		// com/esec/u2ftoken/SecretKey.<init>(B)V
+					areturn;
+		}
+
+		.method private <init>(B)V {
+			.stack 4;
+			.locals 1;
+
+				L0:	aload_0;
+					invokespecial 24;		// java/lang/Object.<init>()V
+					aload_0;
+					sconst_0;
+					putfield_b 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					aload_0;
+					aconst_null;
+					putfield_a 4;		// reference com/esec/u2ftoken/SecretKey.mDESKeyInstance
+					aload_0;
+					aconst_null;
+					putfield_a 5;		// reference com/esec/u2ftoken/SecretKey.mAESKeyInstance
+					aload_0;
+					sload_1;
+					putfield_b 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					getfield_b_this 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					sconst_2;
+					if_scmpne L2;
+				L1:	aload_0;
+					sconst_3;
+					bspush 64;
+					sconst_0;
+					invokestatic 26;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 27;		// T_CLASSORINTERFACE javacard/security/DESKey
+					putfield_a 4;		// reference com/esec/u2ftoken/SecretKey.mDESKeyInstance
+					bspush 16;
+					sconst_2;
+					invokestatic 28;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					astore_2;
+					aload_2;
+					sconst_0;
+					aload_2;
+					arraylength;
+					sconst_0;
+					invokestatic 29;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					pop;
+					getfield_a_this 4;		// reference com/esec/u2ftoken/SecretKey.mDESKeyInstance
+					aload_2;
+					sconst_0;
+					invokeinterface 3 27 5;		// javacard/security/DESKey
+					goto L5;
+				L2:	getfield_b_this 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					sconst_1;
+					if_scmpne L4;
+				L3:	aload_0;
+					bspush 15;
+					sspush 128;
+					sconst_0;
+					invokestatic 26;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 30;		// T_CLASSORINTERFACE javacard/security/AESKey
+					putfield_a 5;		// reference com/esec/u2ftoken/SecretKey.mAESKeyInstance
+					bspush 16;
+					sconst_2;
+					invokestatic 28;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					astore_2;
+					aload_2;
+					sconst_0;
+					aload_2;
+					arraylength;
+					sconst_0;
+					invokestatic 29;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					pop;
+					getfield_a_this 5;		// reference com/esec/u2ftoken/SecretKey.mAESKeyInstance
+					aload_2;
+					sconst_0;
+					invokeinterface 3 30 4;		// javacard/security/AESKey
+					goto L5;
+				L4:	sspush 27264;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L5:	return;
+		}
+
+		.method public keyWrap([BSS[BSB)V 1 {
+			.stack 6;
+			.locals 3;
+
+				L0:	aconst_null;
+					astore 7;
+					getfield_b_this 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					sconst_2;
+					if_scmpne L2;
+				L1:	sconst_3;
+					sconst_0;
+					invokestatic 32;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					astore 7;
+					aload 7;
+					getfield_a_this 4;		// reference com/esec/u2ftoken/SecretKey.mDESKeyInstance
+					sload 6;
+					invokevirtual 33;		// init(Ljavacard/security/Key;B)V
+					goto L7;
+				L2:	getfield_b_this 3;		// byte com/esec/u2ftoken/SecretKey.mKeyType
+					sconst_1;
+					if_scmpne L7;
+				L3:	bspush 14;
+					sconst_0;
+					invokestatic 32;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					astore 7;
+				L4:	goto L6;
+				L5:	astore 8;
+					aload 8;
+					invokevirtual 41;		// getReason()S
+					sstore 9;
+					sload 9;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L6:	aload 7;
+					getfield_a_this 5;		// reference com/esec/u2ftoken/SecretKey.mAESKeyInstance
+					sload 6;
+					invokevirtual 33;		// init(Ljavacard/security/Key;B)V
+				L7:	aload 7;
+					aload_1;
+					sload_2;
+					sload_3;
+					aload 4;
+					sload 5;
+					invokevirtual 34;		// doFinal([BSS[BS)S
+					pop;
+				L8:	goto L10;
+				L9:	astore 8;
+					sspush 27264;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L10:	return;
+			.exceptionTable {
+				// start_block end_block handler_block catch_type_index
+				L3 L4 L5 25;
+				L7 L8 L9 31;
+			}
+		}
+
+	}
+
+	.class public SecretKeys 4 extends 0.0 {		// extends java/lang/Object
+
+		.fields {
+			private 1.10 mDESKeyInstance 0;		// Ljavacard/security/DESKey;
+			private 1.20 mAESKeyInstance 1;		// Ljavacard/security/AESKey;
+			private byte mKeyType 2;		// B
+			public static final byte MODE_ENCRYPT = 1;		// B
+			public static final byte MODE_DECRYPT = 2;		// B
+			public static final byte KEY_TYPE_AES = 1;		// B
+			public static final byte KEY_TYPE_DES = 2;		// B
+			public static SecretKeys mDESSecretKey 0;		// Lcom/esec/u2ftoken/SecretKeys;
+			public static SecretKeys mAESSecretKey 1;		// Lcom/esec/u2ftoken/SecretKeys;
+		}
+
+		.publicMethodTable 1 {
+			equals(Ljava/lang/Object;)Z;
+			keyWrap([BSS[BSB)V;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.method public static getInstance(B)Lcom/esec/u2ftoken/SecretKeys; 0 {
+			.stack 3;
+			.locals 0;
+
+				L0:	sload_0;
+					sconst_1;
+					if_scmpne L4;
+				L1:	getstatic_a 35;		// reference com/esec/u2ftoken/SecretKeys.mAESSecretKey
+					ifnull L3;
+				L2:	getstatic_a 35;		// reference com/esec/u2ftoken/SecretKeys.mAESSecretKey
+					areturn;
+				L3:	new 36;		// com/esec/u2ftoken/SecretKeys
+					dup;
+					sconst_1;
+					invokespecial 37;		// com/esec/u2ftoken/SecretKeys.<init>(B)V
+					putstatic_a 35;		// reference com/esec/u2ftoken/SecretKeys.mAESSecretKey
+					getstatic_a 35;		// reference com/esec/u2ftoken/SecretKeys.mAESSecretKey
+					areturn;
+				L4:	sload_0;
+					sconst_2;
+					if_scmpne L8;
+				L5:	getstatic_a 38;		// reference com/esec/u2ftoken/SecretKeys.mDESSecretKey
+					ifnull L7;
+				L6:	getstatic_a 38;		// reference com/esec/u2ftoken/SecretKeys.mDESSecretKey
+					areturn;
+				L7:	new 36;		// com/esec/u2ftoken/SecretKeys
+					dup;
+					sconst_2;
+					invokespecial 37;		// com/esec/u2ftoken/SecretKeys.<init>(B)V
+					putstatic_a 38;		// reference com/esec/u2ftoken/SecretKeys.mDESSecretKey
+					getstatic_a 38;		// reference com/esec/u2ftoken/SecretKeys.mDESSecretKey
+					areturn;
+				L8:	new 36;		// com/esec/u2ftoken/SecretKeys
+					dup;
+					sload_0;
+					invokespecial 37;		// com/esec/u2ftoken/SecretKeys.<init>(B)V
+					areturn;
+		}
+
+		.method private <init>(B)V {
+			.stack 4;
+			.locals 2;
+
+				L0:	aload_0;
+					invokespecial 24;		// java/lang/Object.<init>()V
+					aload_0;
+					sconst_0;
+					putfield_b 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					aload_0;
+					aconst_null;
+					putfield_a 7;		// reference com/esec/u2ftoken/SecretKeys.mDESKeyInstance
+					aload_0;
+					aconst_null;
+					putfield_a 8;		// reference com/esec/u2ftoken/SecretKeys.mAESKeyInstance
+					aload_0;
+					sload_1;
+					putfield_b 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					getfield_b_this 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					sconst_2;
+					if_scmpne L2;
+				L1:	aload_0;
+					sconst_3;
+					bspush 64;
+					sconst_0;
+					invokestatic 26;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 27;		// T_CLASSORINTERFACE javacard/security/DESKey
+					putfield_a 7;		// reference com/esec/u2ftoken/SecretKeys.mDESKeyInstance
+					bspush 16;
+					sconst_2;
+					invokestatic 28;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					astore_2;
+					aload_2;
+					sconst_0;
+					aload_2;
+					arraylength;
+					sconst_0;
+					invokestatic 29;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					pop;
+					getfield_a_this 7;		// reference com/esec/u2ftoken/SecretKeys.mDESKeyInstance
+					aload_2;
+					sconst_0;
+					invokeinterface 3 27 5;		// javacard/security/DESKey
+					goto L8;
+				L2:	getfield_b_this 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					sconst_1;
+					if_scmpne L7;
+				L3:	aload_0;
+					bspush 15;
+					sspush 128;
+					sconst_0;
+					invokestatic 26;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 30;		// T_CLASSORINTERFACE javacard/security/AESKey
+					putfield_a 8;		// reference com/esec/u2ftoken/SecretKeys.mAESKeyInstance
+				L4:	goto L6;
+				L5:	astore_2;
+					aload_2;
+					invokevirtual 41;		// getReason()S
+					sstore_3;
+					sload_3;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L6:	bspush 16;
+					sconst_2;
+					invokestatic 28;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					astore_2;
+					aload_2;
+					sconst_0;
+					aload_2;
+					arraylength;
+					sconst_0;
+					invokestatic 29;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					pop;
+					getfield_a_this 8;		// reference com/esec/u2ftoken/SecretKeys.mAESKeyInstance
+					aload_2;
+					sconst_0;
+					invokeinterface 3 30 4;		// javacard/security/AESKey
+					goto L8;
+				L7:	sspush 27264;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L8:	return;
+			.exceptionTable {
+				// start_block end_block handler_block catch_type_index
+				L3 L4 L5 25;
+			}
+		}
+
+		.method public keyWrap([BSS[BSB)V 1 {
+			.stack 6;
+			.locals 3;
+
+				L0:	aconst_null;
+					astore 7;
+					getfield_b_this 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					sconst_2;
+					if_scmpne L2;
+				L1:	sconst_3;
+					sconst_0;
+					invokestatic 32;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					astore 7;
+					aload 7;
+					getfield_a_this 7;		// reference com/esec/u2ftoken/SecretKeys.mDESKeyInstance
+					sload 6;
+					invokevirtual 33;		// init(Ljavacard/security/Key;B)V
+					goto L7;
+				L2:	getfield_b_this 6;		// byte com/esec/u2ftoken/SecretKeys.mKeyType
+					sconst_1;
+					if_scmpne L7;
+				L3:	bspush 14;
+					sconst_0;
+					invokestatic 32;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					astore 7;
+				L4:	goto L6;
+				L5:	astore 8;
+					aload 8;
+					invokevirtual 41;		// getReason()S
+					sstore 9;
+					sload 9;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L6:	aload 7;
+					getfield_a_this 8;		// reference com/esec/u2ftoken/SecretKeys.mAESKeyInstance
+					sload 6;
+					invokevirtual 33;		// init(Ljavacard/security/Key;B)V
+				L7:	aload 7;
+					aload_1;
+					sload_2;
+					sload_3;
+					aload 4;
+					sload 5;
+					invokevirtual 34;		// doFinal([BSS[BS)S
+					pop;
+				L8:	goto L10;
+				L9:	astore 8;
+					sspush 27264;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L10:	return;
+			.exceptionTable {
+				// start_block end_block handler_block catch_type_index
+				L3 L4 L5 25;
+				L7 L8 L9 31;
+			}
+		}
+
+	}
+
+	.class public U2FToken 5 extends 2.3 {		// extends javacard/framework/Applet
+
+		.fields {
+			public BinaryEF attestationCertFile 0;		// Lcom/esec/u2ftoken/BinaryEF;
+			public static final byte CLA_7816 = 0;		// B
+			public static final byte INS_TEST_ENCRYPT = 16;		// B
+			public static final byte INS_TEST_DECRYPT = 32;		// B
+			public static final byte INS_U2F_REGISTER = 1;		// B
+			public static final byte INS_U2F_AUTHENTICATE = 2;		// B
+			public static final byte INS_U2F_VERSION = 3;		// B
+			public static final byte INS_U2F_CHECK_REGISTER = 4;		// B
+			public static final byte INS_U2F_AUTHENTICATE_BATCH = 5;		// B
+			private static final byte[] version = {85,50,70,95,86,50};		// [B
+			private static final byte[] attestationCert = {48,-126,1,21,48,-127,-68,2,9,0,-59,-12,-18,76,89,80,62,5,48,10,6,8,42,-122,72,-50,61,4,3,2,48,19,49,17,48,15,6,3,85,4,3,19,8,89,97,110,103,90,104,111,117,48,30,23,13,49,53,49,50,48,57,48,55,48,52,53,56,90,23,13,49,54,49,50,48,56,48,55,48,52,53,56,90,48,19,49,17,48,15,6,3,85,4,3,19,8,89,97,110,103,90,104,111,117,48,89,48,19,6,7,42,-122,72,-50,61,2,1,6,8,42,-122,72,-50,61,3,1,7,3,66,0,4,114,-102,113,-48,-127,98,66,-124,-110,-14,-39,97,-110,77,55,68,58,79,27,-38,88,15,-118,-22,41,32,-46,-103,124,-66,-92,57,96,-50,114,-98,53,-63,-9,64,-110,-14,37,14,96,116,-126,63,-59,127,51,96,-73,-51,57,105,-61,-61,18,94,-50,38,92,41,48,10,6,8,42,-122,72,-50,61,4,3,2,3,72,0,48,69,2,33,0,-25,103,-6,-108,16,53,-43,-123,61,82,-40,125,103,20,112,-68,118,59,-59,-79,46,29,69,119,-22,-97,-116,-90,116,-27,-99,57,2,32,63,-31,28,-83,89,-11,53,118,0,31,21,-18,5,-38,-121,70,-2,-45,39,107,22,-126,-98,-99,94,-3,-1,112,94,8,-100,109};		// [B
+		}
+
+		.publicMethodTable 7 {
+			equals(Ljava/lang/Object;)Z;
+			register()V;
+			register([BSB)V;
+			selectingApplet()Z;
+			deselect()V;
+			getShareableInterfaceObject(Ljavacard/framework/AID;B)Ljavacard/framework/Shareable;;
+			select()Z;
+			process(Ljavacard/framework/APDU;)V;
+			uninstall()V;
+		}
+
+		.packageMethodTable 0 {
+		}
+
+		.implementedInterfaceInfoTable { 
+			.interface 2.18 { 		// javacard/framework/AppletEvent
+				8;		// uninstall()V
+			}
+
+		}
+
+		.method public <init>()V 0 {
+			.stack 5;
+			.locals 0;
+
+				L0:	aload_0;
+					invokespecial 42;		// javacard/framework/Applet.<init>()V
+					aload_0;
+					new 43;		// com/esec/u2ftoken/BinaryEF
+					dup;
+					bspush -17;
+					sconst_1;
+					invokespecial 44;		// com/esec/u2ftoken/BinaryEF.<init>(BB)V
+					putfield_a 9;		// reference com/esec/u2ftoken/U2FToken.attestationCertFile
+					getfield_a_this 9;		// reference com/esec/u2ftoken/U2FToken.attestationCertFile
+					getstatic_a 46;		// reference com/esec/u2ftoken/U2FToken.attestationCert
+					invokevirtual 47;		// setFileContent([B)V
+					return;
+		}
+
+		.method public static install([BSB)V 1 {
+			.stack 2;
+			.locals 0;
+
+				L0:	new 48;		// com/esec/u2ftoken/U2FToken
+					dup;
+					invokespecial 49;		// com/esec/u2ftoken/U2FToken.<init>()V
+					invokevirtual 50;		// register()V
+					return;
+		}
+
+		.method public process(Ljavacard/framework/APDU;)V 7 {
+			.stack 6;
+			.locals 7;
+
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+				L0:	aload_0;
+					invokevirtual 51;		// selectingApplet()Z
+					ifeq L2;
+				L1:	aload_0;
+					aload_1;
+					invokespecial 52;		// com/esec/u2ftoken/U2FToken.getSelectResponse(Ljavacard/framework/APDU;)V
+					return;
+				L2:	aload_1;
+					invokevirtual 53;		// getBuffer()[B
+					astore_2;
+					aload_2;
+					sconst_0;
+					baload;
+					sstore_3;
+					aload_2;
+					sconst_2;
+					baload;
+					sstore 4;
+					aload_2;
+					sconst_3;
+					baload;
+					sstore 5;
+					aload_2;
+					sconst_4;
+					baload;
+					sspush 255;
+					sand;
+					sstore 6;
+					aload_2;
+					sconst_1;
+					baload;
+					slookupswitch L9 3 1 L8 16 L3 32 L7;
+				L3:	bspush 15;
+					sspush 128;
+					sconst_0;
+					invokestatic 26;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					pop;
+				L4:	goto L6;
+				L5:	astore 7;
+					aload 7;
+					invokevirtual 41;		// getReason()S
+					sstore 8;
+					sload 8;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L6:	aload_0;
+					aload_1;
+					sload_3;
+					sload 4;
+					sload 5;
+					sload 6;
+					invokespecial 54;		// com/esec/u2ftoken/U2FToken.encrypt(Ljavacard/framework/APDU;BBBS)V
+					goto L10;
+				L7:	aload_0;
+					aload_1;
+					sload_3;
+					sload 4;
+					sload 5;
+					sload 6;
+					invokespecial 55;		// com/esec/u2ftoken/U2FToken.decrypt(Ljavacard/framework/APDU;BBBS)V
+					goto L10;
+				L8:	aload_0;
+					aload_1;
+					sload_3;
+					sload 4;
+					sload 5;
+					sload 6;
+					invokespecial 56;		// com/esec/u2ftoken/U2FToken.u2fregister(Ljavacard/framework/APDU;BBBS)V
+					goto L10;
+				L9:	sspush 27904;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L10:	return;
+			.exceptionTable {
+				// start_block end_block handler_block catch_type_index
+				L3 L4 L5 25;
+			}
+		}
+
+		.method private getSelectResponse(Ljavacard/framework/APDU;)V {
+			.stack 5;
+			.locals 1;
+
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+				L0:	aload_1;
+					invokevirtual 53;		// getBuffer()[B
+					astore_2;
+					getstatic_a 57;		// reference com/esec/u2ftoken/U2FToken.version
+					sconst_0;
+					aload_2;
+					sconst_0;
+					getstatic_a 57;		// reference com/esec/u2ftoken/U2FToken.version
+					arraylength;
+					invokestatic 58;		// javacard/framework/Util.arrayCopyNonAtomic([BS[BSS)S
+					pop;
+					aload_1;
+					sconst_0;
+					getstatic_a 57;		// reference com/esec/u2ftoken/U2FToken.version
+					arraylength;
+					invokevirtual 59;		// setOutgoingAndSend(SS)V
+					return;
+		}
+
+		.method private u2fregister(Ljavacard/framework/APDU;BBBS)V {
+			.stack 3;
+			.locals 4;
+
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+				L0:	aload_1;
+					invokevirtual 53;		// getBuffer()[B
+					astore 6;
+					sload_2;
+					ifeq L2;
+				L1:	sspush 28160;
+					invokestatic 45;		// javacard/framework/ISOException.throwIt(S)V
+				L2:	invokestatic 60;		// com/esec/u2ftoken/SecP256r1.newKeyPair()Ljavacard/security/KeyPair;
+					astore 7;
+					aload 7;
+					invokevirtual 61;		// genKeyPair()V
+					aload 7;
+					invokevirtual 12;		// getPublic()Ljavacard/security/PublicKey;
+					checkcast 0 13;		// T_CLASSORINTERFACE javacard/security/ECPublicKey
+					astore 8;
+					aload 7;
+					invokevirtual 10;		// getPrivate()Ljavacard/security/PrivateKey;
+					checkcast 0 11;		// T_CLASSORINTERFACE javacard/security/ECPrivateKey
+					astore 9;
+					aload 8;
+					aload 6;
+					sconst_0;
+					invokeinterface 3 13 16;		// javacard/security/ECPublicKey
+					pop;
+					aload_1;
+					sconst_0;
+					bspush 32;
+					invokevirtual 59;		// setOutgoingAndSend(SS)V
+					return;
+		}
+
+		.method private encrypt(Ljavacard/framework/APDU;BBBS)V {
+			.stack 7;
+			.locals 3;
+
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+				L0:	aload_1;
+					invokevirtual 53;		// getBuffer()[B
+					astore 6;
+					sconst_1;
+					invokestatic 62;		// com/esec/u2ftoken/SecretKeys.getInstance(B)Lcom/esec/u2ftoken/SecretKeys;
+					astore 7;
+					bspush 16;
+					newarray 11;
+					dup;
+					sconst_0;
+					sconst_0;
+					bastore;
+					dup;
+					sconst_1;
+					sconst_1;
+					bastore;
+					dup;
+					sconst_2;
+					sconst_2;
+					bastore;
+					dup;
+					sconst_3;
+					sconst_3;
+					bastore;
+					dup;
+					sconst_4;
+					sconst_4;
+					bastore;
+					dup;
+					sconst_5;
+					sconst_5;
+					bastore;
+					dup;
+					bspush 6;
+					bspush 6;
+					bastore;
+					dup;
+					bspush 7;
+					bspush 7;
+					bastore;
+					dup;
+					bspush 8;
+					bspush 8;
+					bastore;
+					dup;
+					bspush 9;
+					bspush 9;
+					bastore;
+					dup;
+					bspush 10;
+					bspush 10;
+					bastore;
+					dup;
+					bspush 11;
+					bspush 11;
+					bastore;
+					dup;
+					bspush 12;
+					bspush 12;
+					bastore;
+					dup;
+					bspush 13;
+					bspush 13;
+					bastore;
+					dup;
+					bspush 14;
+					bspush 14;
+					bastore;
+					dup;
+					bspush 15;
+					bspush 15;
+					bastore;
+					astore 8;
+					aload 7;
+					aload 8;
+					sconst_0;
+					aload 8;
+					arraylength;
+					aload 6;
+					sconst_0;
+					sconst_1;
+					invokevirtual 63;		// keyWrap([BSS[BSB)V
+					aload_1;
+					sconst_0;
+					bspush 48;
+					invokevirtual 59;		// setOutgoingAndSend(SS)V
+					return;
+		}
+
+		.method private decrypt(Ljavacard/framework/APDU;BBBS)V {
+			.stack 7;
+			.locals 3;
+
+			.descriptor	Ljavacard/framework/APDU;	2.10;
+
+				L0:	sconst_1;
+					invokestatic 62;		// com/esec/u2ftoken/SecretKeys.getInstance(B)Lcom/esec/u2ftoken/SecretKeys;
+					astore 6;
+					aload_1;
+					invokevirtual 64;		// setIncomingAndReceive()S
+					pop;
+					aload_1;
+					invokevirtual 53;		// getBuffer()[B
+					astore 7;
+					bspush 16;
+					newarray 11;
+					dup;
+					sconst_0;
+					bspush 73;
+					bastore;
+					dup;
+					sconst_1;
+					bspush 30;
+					bastore;
+					dup;
+					sconst_2;
+					bspush -119;
+					bastore;
+					dup;
+					sconst_3;
+					bspush 13;
+					bastore;
+					dup;
+					sconst_4;
+					bspush -23;
+					bastore;
+					dup;
+					sconst_5;
+					bspush -84;
+					bastore;
+					dup;
+					bspush 6;
+					bspush -23;
+					bastore;
+					dup;
+					bspush 7;
+					bspush 50;
+					bastore;
+					dup;
+					bspush 8;
+					bspush -125;
+					bastore;
+					dup;
+					bspush 9;
+					bspush -118;
+					bastore;
+					dup;
+					bspush 10;
+					bspush 73;
+					bastore;
+					dup;
+					bspush 11;
+					bspush 121;
+					bastore;
+					dup;
+					bspush 12;
+					bspush 47;
+					bastore;
+					dup;
+					bspush 13;
+					bspush 34;
+					bastore;
+					dup;
+					bspush 14;
+					bspush 19;
+					bastore;
+					dup;
+					bspush 15;
+					bspush -13;
+					bastore;
+					astore 8;
+					aload 6;
+					aload 8;
+					sconst_0;
+					bspush 16;
+					aload 7;
+					sconst_0;
+					sconst_2;
+					invokevirtual 63;		// keyWrap([BSS[BSB)V
+					aload_1;
+					sconst_0;
+					bspush 16;
+					invokevirtual 59;		// setOutgoingAndSend(SS)V
+					return;
+		}
+
+		.method public uninstall()V 8 {
+			.stack 1;
+			.locals 0;
+
+				L0:	aconst_null;
+					putstatic_a 35;		// reference com/esec/u2ftoken/SecretKeys.mAESSecretKey
+					aconst_null;
+					putstatic_a 38;		// reference com/esec/u2ftoken/SecretKeys.mDESSecretKey
+					return;
+		}
+
+	}
+
+}

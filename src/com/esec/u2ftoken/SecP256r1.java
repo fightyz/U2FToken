@@ -3,6 +3,9 @@
  */
 package com.esec.u2ftoken;
 
+import javacard.framework.ISO7816;
+import javacard.framework.ISOException;
+import javacard.security.CryptoException;
 import javacard.security.ECPrivateKey;
 import javacard.security.ECPublicKey;
 import javacard.security.KeyPair;
@@ -43,7 +46,14 @@ public class SecP256r1 {
 		(byte) 0x84, (byte) 0xf3, (byte) 0xb9, (byte) 0xca, (byte) 0xc2, (byte) 0xfc, 0x63, 0x25, 0x51 };
 	
 	public static KeyPair newKeyPair() {
-		KeyPair key = new KeyPair(KeyPair.ALG_EC_FP, (short) 256);
+//		ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+		KeyPair key = null;
+		try {
+			key = new KeyPair(KeyPair.ALG_EC_FP, (short) 256);
+		} catch(CryptoException e) {
+			short reason = e.getReason();
+			ISOException.throwIt(reason);
+		}
 		
 		ECPrivateKey privKey = (ECPrivateKey) key.getPrivate();
 		ECPublicKey pubKey = (ECPublicKey) key.getPublic();

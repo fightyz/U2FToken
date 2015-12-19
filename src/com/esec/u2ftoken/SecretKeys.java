@@ -6,6 +6,7 @@ import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import javacard.framework.Util;
 import javacard.security.AESKey;
+import javacard.security.CryptoException;
 import javacard.security.DESKey;
 import javacard.security.KeyBuilder;
 import javacardx.crypto.Cipher;
@@ -15,7 +16,7 @@ import javacardx.crypto.Cipher;
  * @version 创建时间：2015-12-10 下午06:51:23 
  * 与密钥相关的操作和数据封装类
  */
-public class SecretKey {
+public class SecretKeys {
 	
 	public static final byte MODE_ENCRYPT = 0x01; // 加密模式
 	public static final byte MODE_DECRYPT = 0x02; // 解密模式
@@ -35,15 +36,15 @@ public class SecretKey {
 	 */
 	private AESKey mAESKeyInstance = null;
 	
-	public static SecretKey mDESSecretKey = null;
-	public static SecretKey mAESSecretKey = null;
+	public static SecretKeys mDESSecretKey = null;
+	public static SecretKeys mAESSecretKey = null;
 	
-	public static SecretKey getInstance(byte keyType) {
+	public static SecretKeys getInstance(byte keyType) {
 		if (keyType == KEY_TYPE_AES) {
 			if (mAESSecretKey != null) {
 				return mAESSecretKey;
 			} else {
-				mAESSecretKey = new SecretKey(KEY_TYPE_AES);
+				mAESSecretKey = new SecretKeys(KEY_TYPE_AES);
 				return mAESSecretKey;
 //				keyType = KEY_TYPE_AES;
 			}
@@ -51,11 +52,11 @@ public class SecretKey {
 			if (mDESSecretKey != null) {
 				return mDESSecretKey;
 			} else {
-				mDESSecretKey = new SecretKey(KEY_TYPE_DES);
+				mDESSecretKey = new SecretKeys(KEY_TYPE_DES);
 				return mDESSecretKey;
 			}
 		} else {
-			return new SecretKey(keyType);
+			return new SecretKeys(keyType);
 		}
 	}
 	
@@ -64,7 +65,7 @@ public class SecretKey {
 	 * 采用AES-256，生成的AES密钥有256位
 	 * 采用DES3-2KEY，生成的DES密钥有128位
 	 */
-	private SecretKey(byte keyType) {
+	private SecretKeys(byte keyType) {
 		mKeyType = keyType;
 		if (mKeyType == KEY_TYPE_DES) {
 //			mDESKeyInstance = (DESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_DES, KeyBuilder.LENGTH_DES3_2KEY, false);
@@ -73,7 +74,16 @@ public class SecretKey {
 			Util.arrayFillNonAtomic(keyData, (short) 0, (short) keyData.length, (byte) 0x00);
 			mDESKeyInstance.setKey(keyData, (short) 0);
 		} else if (mKeyType == KEY_TYPE_AES) {
-			mAESKeyInstance = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+//			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+			try {
+				// TODO 这里有点问题，没有这个算法？
+				mAESKeyInstance = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+			} catch(CryptoException e) {
+				short reason = e.getReason();
+				ISOException.throwIt(reason);
+			}
+//			mAESKeyInstance = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+//			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 			// TODO 是不是这里有错？？？？？AES-256应该是32字节？？
 			byte[] keyData = JCSystem.makeTransientByteArray((short) 16, JCSystem.CLEAR_ON_DESELECT);
 			Util.arrayFillNonAtomic(keyData, (short) 0, (short) keyData.length, (byte) 0x00);
@@ -101,8 +111,15 @@ public class SecretKey {
 			cipher.init(mDESKeyInstance, mode); // 初始向量(iv)是0
 		} else if (mKeyType == KEY_TYPE_AES) {
 //			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
-			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
-			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+//			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+			try {
+				cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+			} catch (CryptoException e) {
+				short reason = e.getReason();
+				ISOException.throwIt(reason);
+			}
+//			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+//			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 			cipher.init(mAESKeyInstance, mode); // 初始向量(iv)是0
 		}
 		

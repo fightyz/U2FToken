@@ -6,8 +6,10 @@ import javacard.framework.AppletEvent;
 import javacard.framework.ISO7816;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
+import javacard.security.CryptoException;
 import javacard.security.ECPrivateKey;
 import javacard.security.ECPublicKey;
+import javacard.security.KeyBuilder;
 import javacard.security.KeyPair;
 
 public class U2FToken extends Applet implements AppletEvent {
@@ -45,7 +47,7 @@ public class U2FToken extends Applet implements AppletEvent {
 	}
 	public static void install(byte[] bArray, short bOffset, byte bLength) {
 		// GP-compliant JavaCard applet registration
-		new U2FToken().register(bArray, (short) (bOffset + 1), bArray[bOffset]);
+		new U2FToken().register();
 	}
 
 	public void process(APDU apdu) {
@@ -64,13 +66,21 @@ public class U2FToken extends Applet implements AppletEvent {
 		
 		switch (buf[ISO7816.OFFSET_INS]) {
 		case (byte) INS_TEST_ENCRYPT:
+			try {
+				KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+			} catch(CryptoException e) {
+				short reason = e.getReason();
+				ISOException.throwIt(reason);
+			}
+			
+//			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 			encrypt(apdu, cla, p1, p2, lc);
 			break;
 		case (byte) INS_TEST_DECRYPT:
 			decrypt(apdu, cla, p1, p2, lc);
 			break;
 		case (byte) INS_U2F_REGISTER: // U2F_REGISTER，注册指令
-			register(apdu, cla, p1, p2, lc);
+			u2fregister(apdu, cla, p1, p2, lc);
 			break;
 		default:
 			// good practice: If you don't know the INStruction, say so:
@@ -96,12 +106,14 @@ public class U2FToken extends Applet implements AppletEvent {
 	 * @param p2
 	 * @param lc
 	 */
-	private void register(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+	private void u2fregister(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		byte[] buffer = apdu.getBuffer();
 		if (cla != CLA_7816) {
 			ISOException.throwIt(ISO7816.SW_CLA_NOT_SUPPORTED);
 		}
 		
 		//生成认证公私钥
+//		ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 		KeyPair pair = SecP256r1.newKeyPair();
 		pair.genKeyPair();
 		ECPublicKey pubKey = (ECPublicKey) pair.getPublic();
@@ -109,29 +121,33 @@ public class U2FToken extends Applet implements AppletEvent {
 		
 		// 生成KeyHandle
 		//TODO 生成KeyHandle，里面的AppID似乎只能是Client传过来的AppID的hash？
+		
+		pubKey.getR(buffer, (short) 0);
+		apdu.setOutgoingAndSend((short) 0, (short) 32);
 	}
 	
 	private void encrypt(APDU apdu, byte cla, byte p1, byte p2, short lc) {
 		byte[] buffer = apdu.getBuffer();
-		SecretKey secretKey = SecretKey.getInstance(SecretKey.KEY_TYPE_AES);
+//		ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+		SecretKeys secretKey = SecretKeys.getInstance(SecretKeys.KEY_TYPE_AES);
 		byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
-		secretKey.keyWrap(data, (short) 0, (short) data.length, buffer, (short) 0, SecretKey.MODE_ENCRYPT);
+		secretKey.keyWrap(data, (short) 0, (short) data.length, buffer, (short) 0, SecretKeys.MODE_ENCRYPT);
 //		byte[] data = {0x49, 0x1E, (byte) 0x89, 0x0D, (byte) 0xE9, (byte) 0xAC, (byte) 0xE9, 0x32, (byte) 0x83, (byte) 0x8A, 0x49, 0x79, 0x2F, 0x22, 0x13, (byte) 0xF3};
 //		secretKey.keyWrap(data, (short) 0, (short) 16, buffer, (short) 0, SecretKey.MODE_DECRYPT);
 		apdu.setOutgoingAndSend((short) 0, (short) 48);
 	}
 	
 	private void decrypt(APDU apdu, byte cla, byte p1, byte p2, short lc) {
-		SecretKey secreKey = SecretKey.getInstance(SecretKey.KEY_TYPE_AES);
+		SecretKeys secreKey = SecretKeys.getInstance(SecretKeys.KEY_TYPE_AES);
 		apdu.setIncomingAndReceive();
 		byte[] buffer = apdu.getBuffer();
 		byte[] data = {0x49, 0x1E, (byte) 0x89, 0x0D, (byte) 0xE9, (byte) 0xAC, (byte) 0xE9, 0x32, (byte) 0x83, (byte) 0x8A, 0x49, 0x79, 0x2F, 0x22, 0x13, (byte) 0xF3};
-		secreKey.keyWrap(data, (short) 0, (short) 16, buffer, (short) 0, SecretKey.MODE_DECRYPT);
+		secreKey.keyWrap(data, (short) 0, (short) 16, buffer, (short) 0, SecretKeys.MODE_DECRYPT);
 		apdu.setOutgoingAndSend((short) 0, (short) 16);
 	}
 	public void uninstall() {
 		// TODO Auto-generated method stub
-		SecretKey.mAESSecretKey = null;
-		SecretKey.mDESSecretKey = null;
+		SecretKeys.mAESSecretKey = null;
+		SecretKeys.mDESSecretKey = null;
 	}
 }
