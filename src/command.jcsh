@@ -1,0 +1,17 @@
+/term "winscard:4|SCM Microsystems Inc. SDI011G Contactless Reader 0"
+/card -a a000000003000000 -c com.ibm.jc.CardManager
+set-key 255/1/DES-ECB/404142434445464748494a4b4c4d4e4f 255/2/DES-ECB/404142434445464748494a4b4c4d4e4f 255/3/DES-ECB/404142434445464748494a4b4c4d4e4f
+init-update 255
+ext-auth mac
+try
+delete a0000006472f0001
+catch 1
+end
+try
+delete a0000006472f00
+catch 1
+end
+upload "E:\workspace\java\javacard\jcop_workspace\U2FToken\src\com\esec\u2ftoken\javacard\u2ftoken.cap"
+install a0000006472f00 a0000006472f0001
+ls
+/select a0000006472f0001

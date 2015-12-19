@@ -1,10 +1,12 @@
 package com.esec.u2ftoken;
 
+import javacard.framework.APDU;
 import javacard.framework.ISO7816;
 import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import javacard.framework.Util;
 import javacard.security.AESKey;
+import javacard.security.DESKey;
 import javacard.security.KeyBuilder;
 import javacardx.crypto.Cipher;
 
@@ -18,20 +20,68 @@ public class SecretKey {
 	public static final byte MODE_ENCRYPT = 0x01; // 加密模式
 	public static final byte MODE_DECRYPT = 0x02; // 解密模式
 	
-	/**
-	 * key wrap的实体，这里采用AES算法
-	 */
-	private AESKey mKeyInstance;
+	public static final byte KEY_TYPE_AES = 0x01; // 本示例保存的是AES密钥
+	public static final byte KEY_TYPE_DES = 0x02; // 本示例保存的是DES密钥
+	
+	private byte mKeyType = 0x00;
 	
 	/**
-	 * 初始化key wrap算法的密钥，保存在mKeyInstance中
-	 * 采用AES-256，生成的AES密钥有256位
+	 * 密钥的实体，DES
 	 */
-	public SecretKey() {
-		mKeyInstance = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_256, false);
-		byte[] keyData = JCSystem.makeTransientByteArray((short) 32, JCSystem.CLEAR_ON_DESELECT);
-		Util.arrayFillNonAtomic(keyData, (short) 0, (short) keyData.length, (byte) 0x00);
-		mKeyInstance.setKey(keyData, (short) 0);
+	private DESKey mDESKeyInstance = null;
+	
+	/**
+	 * 密钥的实体，AES
+	 */
+	private AESKey mAESKeyInstance = null;
+	
+	public static SecretKey mDESSecretKey = null;
+	public static SecretKey mAESSecretKey = null;
+	
+	public static SecretKey getInstance(byte keyType) {
+		if (keyType == KEY_TYPE_AES) {
+			if (mAESSecretKey != null) {
+				return mAESSecretKey;
+			} else {
+				mAESSecretKey = new SecretKey(KEY_TYPE_AES);
+				return mAESSecretKey;
+//				keyType = KEY_TYPE_AES;
+			}
+		} else if (keyType == KEY_TYPE_DES) {
+			if (mDESSecretKey != null) {
+				return mDESSecretKey;
+			} else {
+				mDESSecretKey = new SecretKey(KEY_TYPE_DES);
+				return mDESSecretKey;
+			}
+		} else {
+			return new SecretKey(keyType);
+		}
+	}
+	
+	/**
+	 * 初始化key wrap算法的密钥
+	 * 采用AES-256，生成的AES密钥有256位
+	 * 采用DES3-2KEY，生成的DES密钥有128位
+	 */
+	private SecretKey(byte keyType) {
+		mKeyType = keyType;
+		if (mKeyType == KEY_TYPE_DES) {
+//			mDESKeyInstance = (DESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_DES, KeyBuilder.LENGTH_DES3_2KEY, false);
+			mDESKeyInstance = (DESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_DES, KeyBuilder.LENGTH_DES, false);
+			byte[] keyData = JCSystem.makeTransientByteArray((short) 16, JCSystem.CLEAR_ON_DESELECT);
+			Util.arrayFillNonAtomic(keyData, (short) 0, (short) keyData.length, (byte) 0x00);
+			mDESKeyInstance.setKey(keyData, (short) 0);
+		} else if (mKeyType == KEY_TYPE_AES) {
+			mAESKeyInstance = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+			// TODO 是不是这里有错？？？？？AES-256应该是32字节？？
+			byte[] keyData = JCSystem.makeTransientByteArray((short) 16, JCSystem.CLEAR_ON_DESELECT);
+			Util.arrayFillNonAtomic(keyData, (short) 0, (short) keyData.length, (byte) 0x00);
+			mAESKeyInstance.setKey(keyData, (short) 0);
+		} else {
+			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+		}
+		
 	}
 	
 	/**
@@ -43,13 +93,22 @@ public class SecretKey {
 	 * @param outOffset
 	 * @param mode 加密或解密。 Cipher.MODE_ENCRYPT 或 Cipher.MODE_DECRYPT
 	 */
-	public void KeyWrap(byte[] data, short inOffset, short inLength, byte[] outBuff, short outOffset, byte mode) {
-		Cipher cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
-		cipher.init(mKeyInstance, mode); // 初始向量(iv)是0
+	public void keyWrap(byte[] data, short inOffset, short inLength, byte[] buffer, short outOffset, byte mode) {
+		Cipher cipher = null;
+		if (mKeyType == KEY_TYPE_DES) {
+//			cipher = Cipher.getInstance(Cipher.ALG_DES_ECB_NOPAD, false);
+			cipher = Cipher.getInstance(Cipher.ALG_DES_CBC_ISO9797_M2, false);
+			cipher.init(mDESKeyInstance, mode); // 初始向量(iv)是0
+		} else if (mKeyType == KEY_TYPE_AES) {
+//			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
+			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
+			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+			cipher.init(mAESKeyInstance, mode); // 初始向量(iv)是0
+		}
 		
 		// 加密或解密，doFinal后，cipher对象将被重置
 		try {
-			cipher.doFinal(data, inOffset, inLength, outBuff, outOffset);
+			cipher.doFinal(data, inOffset, inLength, buffer, outOffset);
 		} catch(Exception e) {
 			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 		}
