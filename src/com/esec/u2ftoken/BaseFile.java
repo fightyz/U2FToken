@@ -6,6 +6,7 @@ package com.esec.u2ftoken;
  */
 public class BaseFile {
 	public static final byte FILE_TYPE_BINARY = 0x02; // 二进制文件
+	public static final byte FILE_TYPE_FIXED_LENGTH = 0x03; // 定长记录文件
 	
 	/**
 	 * 文件FID的高字节

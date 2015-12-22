@@ -2,7 +2,7 @@ package com.esec.u2ftoken;
 /** 
  * @author Yang Zhou 
  * @version 创建时间：2015-12-7 下午09:36:38 
- * 二进制文件类
+ * Transparent structure.
  */
 public class BinaryEF extends BaseFile {
 	/**
