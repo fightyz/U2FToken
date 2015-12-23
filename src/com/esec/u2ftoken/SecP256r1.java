@@ -14,7 +14,7 @@ import javacard.security.PrivateKey;
  * @version 创建时间：2015-12-10 上午10:00:46 
  * secp256r1的参数初始化封装类，参数来自bouncycastle的java实现
  */
-public class SecP256r1 implements KeyPairGenerator {
+public class SecP256r1 {
 	
 	private final static byte[] p = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x00,
 		0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte) 0xff,
@@ -45,7 +45,7 @@ public class SecP256r1 implements KeyPairGenerator {
 		(byte) 0xff, (byte) 0xbc, (byte) 0xe6, (byte) 0xfa, (byte) 0xad, (byte) 0xa7, 0x17, (byte) 0x9e,
 		(byte) 0x84, (byte) 0xf3, (byte) 0xb9, (byte) 0xca, (byte) 0xc2, (byte) 0xfc, 0x63, 0x25, 0x51 };
 
-	public KeyPair newKeyPair() {
+	public static KeyPair newKeyPair() {
 		KeyPair key = new KeyPair(KeyPair.ALG_EC_FP, (short) 256);
 
 		ECPrivateKey privKey = (ECPrivateKey) key.getPrivate();
@@ -74,7 +74,7 @@ public class SecP256r1 implements KeyPairGenerator {
 		return key;
 	}
 
-	public short encodePrivateKey(PrivateKey privateKey, byte[] encPrivateKey) {
+	public static short encodePrivateKey(PrivateKey privateKey, byte[] encPrivateKey) {
 		// TODO Auto-generated method stub
 		ECPrivateKey privKey = (ECPrivateKey)privateKey;
 		return privKey.getS(encPrivateKey, (short) 0);

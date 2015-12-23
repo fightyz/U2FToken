@@ -19,8 +19,19 @@ import javacard.security.Signature;
 import javacardx.crypto.Cipher;
 
 public class U2FToken extends Applet {
+	/**
+	 * 64 bytes, contains 32 bytes application sha256 and 32 bytes challenge sha256(this is a hash of Client Data)
+	 */
 	private static final short LEN_REGISTRATION_REQUEST_MESSAGE = 64;
+	
+	/**
+	 * 32 bytes, this is the hash of appid
+	 */
 	private static final short LEN_APPLICATIONSHA256 = 32;
+	
+	/**
+	 * 32 bytes, this is the hash of Client Data
+	 */
 	private static final short LEN_CHALLENGESHA256 = 32;
 	
 	public static final byte CLA_7816 = 0x00;
@@ -101,11 +112,7 @@ public class U2FToken extends Applet {
 //			decrypt(apdu, cla, p1, p2, lc);
 			break;
 		case (byte) INS_U2F_REGISTER: // U2F register command
-			SecP256r1 userKeyPair = new SecP256r1();
-			AesKeyHandle aesKeyHandle = new AesKeyHandle();
-			u2fRegister(apdu, cla, p1, p2, lc,
-					userKeyPair,
-					aesKeyHandle);
+			u2fRegister(apdu, cla, p1, p2, lc);
 			break;
 			
 		case (byte) INS_TEST_SEEECPUBKEY:
@@ -140,34 +147,34 @@ public class U2FToken extends Applet {
 	 * @param p2
 	 * @param lc
 	 */
-	private void u2fRegister(APDU apdu, byte cla, byte p1, byte p2, short lc, 
-			KeyPairGenerator keyPairGenerator,
-			KeyHandleGenerator keyHandleGenerator) {
+	private void u2fRegister(APDU apdu, byte cla, byte p1, byte p2, short lc) {
 		if (cla != CLA_U2F) {
 			ISOException.throwIt(ISO7816.SW_CLA_NOT_SUPPORTED);
 		}
-		short readCount = apdu.setIncomingAndReceive();
-		byte[] buffer = apdu.getBuffer();
-		
+		short readCount = apdu.setIncomingAndReceive();		
 		if (readCount != LEN_REGISTRATION_REQUEST_MESSAGE) {
 			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 		}
-		byte[] applicationSha256 = new byte[LEN_APPLICATIONSHA256];
+		
+		byte[] buffer = apdu.getBuffer();
+		SharedMemory sharedMemory = SharedMemory.getInstance();
+		
+		byte[] applicationSha256 = sharedMemory.m32BytesApplicationSha256;
 		Util.arrayCopyNonAtomic(buffer, ISO7816.OFFSET_CDATA, applicationSha256, (short) 0, LEN_APPLICATIONSHA256);
 		
-		byte[] challengeSha256 = new byte[LEN_CHALLENGESHA256];
+		byte[] challengeSha256 = sharedMemory.m32BytesChallengeSha256;
 		Util.arrayCopyNonAtomic(buffer, (short)(ISO7816.OFFSET_CDATA + LEN_APPLICATIONSHA256),
 				challengeSha256, (short) 0, LEN_CHALLENGESHA256);
 		
 		// Generate user authentication key
-		KeyPair userKeyPair = keyPairGenerator.newKeyPair();
+		KeyPair userKeyPair = SecP256r1.newKeyPair();
 		userKeyPair.genKeyPair();
-		// TODO 这里应该用瞬时空间
-		byte[] buff = new byte[127];
-		short keyLen = keyPairGenerator.encodePrivateKey(userKeyPair.getPrivate(), buff);
-		byte[] userPrivateKey = new byte[keyLen];
+		short keyLen = SecP256r1.encodePrivateKey(userKeyPair.getPrivate(), buffer);
+		byte[] userPrivateKey = sharedMemory.m32BytesUserPrivateKey;
+		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, keyLen);
+		
 		// Generate Key Hanle
-		byte[] keyHandle = keyHandleGenerator.generateKeyHandle(applicationSha256, userPrivateKey);
+		byte[] keyHandle = AesKeyHandle.generateKeyHandle(applicationSha256, userPrivateKey);
 		
 //		generateKeyHandle();
 		// TODO 

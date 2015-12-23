@@ -7,9 +7,9 @@ import javacard.security.KeyPair;
  * @version 创建时间：2015-12-22 下午10:11:13 
  * Generate Key Handle with AES
  */
-public class AesKeyHandle implements KeyHandleGenerator {
+public class AesKeyHandle {
 
-	public byte[] generateKeyHandle(byte[] applicationSha256, byte[] privateKey) {
+	public static byte[] generateKeyHandle(byte[] applicationSha256, byte[] privateKey) {
 		// TODO Auto-generated method stub
 //		ECPrivateKey userPrivateKey = keyPair.getPrivate();
 		return null;
