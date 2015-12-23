@@ -73,10 +73,4 @@ public class SecP256r1 {
 		
 		return key;
 	}
-
-	public static short encodePrivateKey(PrivateKey privateKey, byte[] encPrivateKey) {
-		// TODO Auto-generated method stub
-		ECPrivateKey privKey = (ECPrivateKey)privateKey;
-		return privKey.getS(encPrivateKey, (short) 0);
-	}
 }

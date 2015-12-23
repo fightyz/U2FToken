@@ -42,6 +42,8 @@ public class U2FToken extends Applet {
 	public static final byte INS_TEST_SEEECPUBKEY = 0x30;
 	public static final byte INS_TEST_VERIFY = 0x40;
 	public static final byte INS_TEST_BOUNCY_CASTLE = 0x50;
+	public static final byte INS_TEST_GENERIC = 0x60;
+	
 	public static final byte INS_U2F_REGISTER = 0x01; // Registration command
 	public static final byte INS_U2F_AUTHENTICATE = 0x02; // Authenticate/sign command
 	public static final byte INS_U2F_VERSION = 0x03; //Read version string command
@@ -123,6 +125,12 @@ public class U2FToken extends Applet {
 			verifyKey(apdu, cla, p1, p2, lc);
 			break;
 			
+		case (byte) INS_TEST_GENERIC:
+			byte[] test = genericTest(apdu, cla, p1, p2, lc);
+			Util.arrayCopyNonAtomic(test, (short) 0, buf, (short) 0, (short) test.length);
+			apdu.setOutgoingAndSend((short) 0, (short) test.length);
+			break;
+			
 		default:
 			// good practice: If you don't know the INStruction, say so:
 			ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -169,17 +177,31 @@ public class U2FToken extends Applet {
 		// Generate user authentication key
 		KeyPair userKeyPair = SecP256r1.newKeyPair();
 		userKeyPair.genKeyPair();
-		short keyLen = SecP256r1.encodePrivateKey(userKeyPair.getPrivate(), buffer);
+		ECPrivateKey privKey = (ECPrivateKey)userKeyPair.getPrivate();
+		ECPublicKey pubKey = (ECPublicKey)userKeyPair.getPublic();
+		
+		short userPrivatekeyLen = privKey.getS(buffer, (short) 0);
 		byte[] userPrivateKey = sharedMemory.m32BytesUserPrivateKey;
-		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, keyLen);
+		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, userPrivatekeyLen);
 		
 		// Generate Key Hanle
 		byte[] keyHandle = AesKeyHandle.generateKeyHandle(applicationSha256, userPrivateKey);
 		
-//		generateKeyHandle();
-		// TODO 
-//		generateSignature();
+		{
+			// TODO May be store tuple(KeyHandle, KeyPair) in two Linear EF. They can be mapped by the index.
+		}
 		
+		short userPublicKeyLen = pubKey.getW(buffer, (short) 0);
+		byte[] userPublicKey = sharedMemory.m65BytesUserPublicKey;
+		Util.arrayCopyNonAtomic(buffer, (short) 0, userPublicKey, (short) 0, userPublicKeyLen);
+		
+		// Sign data
+		byte[] signedData = RawMessageCodec.encodeRegistrationSignedBytes(
+				applicationSha256,
+				challengeSha256,
+				keyHandle,
+				userPublicKey
+				);
 		
 		//生成认证公私钥
 //		KeyPair pair = SecP256r1.newKeyPair();
@@ -208,10 +230,6 @@ public class U2FToken extends Applet {
 ////		pubKey.
 //		
 //		apdu.setOutgoingAndSend((short) 0, sendlen);
-	}
-	
-	private void generateKeyHandle(APDU apdu, byte cla, byte p1, byte p2, short lc) {
-		
 	}
 	
 	private void seeECPubKey(APDU apdu, byte cla, byte p1, byte p2, short lc) {
@@ -325,9 +343,11 @@ public class U2FToken extends Applet {
 		
 		byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 		Cipher cipher = null;
+		
 		try {
 			// Cipher.getInstance在这里过不了，在U2FToken里能过？？？
-			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+//			cipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+			cipher = Cipher.getInstance(Cipher.ALG_AES_CBC_ISO9797_M2, false);
 		} catch (CryptoException e) {
 //			ISOException.throwIt(JCSystem.getVersion());
 			short reason = e.getReason();
@@ -337,12 +357,21 @@ public class U2FToken extends Applet {
 //		}
 		
 		// 加密或解密，doFinal后，cipher对象将被重置
+		short sendLen = 0;
 		try {
-			cipher.doFinal(data, (short) 0, (short) data.length, buffer, (short) 0);
+			sendLen = cipher.doFinal(data, (short) 0, (short) data.length, buffer, (short) 0);
 		} catch(Exception e) {
 			ISOException.throwIt(ISO7816.SW_WRONG_DATA);
 		}
-		apdu.setOutgoingAndSend((short) 0, (short) 48);
+		apdu.setOutgoingAndSend((short) 0, sendLen);
+	}
+	
+	private byte[] genericTest(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		byte[] test = JCSystem.makeTransientByteArray((short) 3, JCSystem.CLEAR_ON_DESELECT);
+		test[0] = 0x00;
+		test[1] = 0x01;
+		test[2] = 0x02;
+		return test;
 	}
 	
 //	private void decrypt(APDU apdu, byte cla, byte p1, byte p2, short lc) {
