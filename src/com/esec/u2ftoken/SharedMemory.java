@@ -22,6 +22,8 @@ public class SharedMemory {
 	
 	public byte[] m65BytesUserPublicKey;
 	
+	public byte[] m2BytesKeyHandle;
+	
 	public static SharedMemory getInstance() {
 		if (INSTANCE == null) {
 			INSTANCE = new SharedMemory();
@@ -34,5 +36,6 @@ public class SharedMemory {
 		m32BytesChallengeSha256 = JCSystem.makeTransientByteArray((short) 32, JCSystem.CLEAR_ON_DESELECT);
 		m32BytesUserPrivateKey = JCSystem.makeTransientByteArray((short) 32, JCSystem.CLEAR_ON_DESELECT);
 		m65BytesUserPublicKey = JCSystem.makeTransientByteArray((short) 65, JCSystem.CLEAR_ON_DESELECT);
+		m2BytesKeyHandle = JCSystem.makeTransientByteArray((short) 2, JCSystem.CLEAR_ON_DESELECT);
 	}
 }

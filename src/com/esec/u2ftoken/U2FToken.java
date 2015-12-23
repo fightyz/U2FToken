@@ -71,7 +71,10 @@ public class U2FToken extends Applet {
 	private boolean GENED = false;
 	private Signature signature;
 	
+	private KeyHandleGenerator mKeyHandleGenerator;
+	
 	public U2FToken() {
+		mKeyHandleGenerator = new IndexKeyHandle();
 	}
 	public static void install(byte[] bArray, short bOffset, byte bLength) {
 		// GP-compliant JavaCard applet registration
@@ -180,13 +183,13 @@ public class U2FToken extends Applet {
 		ECPrivateKey privKey = (ECPrivateKey)userKeyPair.getPrivate();
 		ECPublicKey pubKey = (ECPublicKey)userKeyPair.getPublic();
 		
-		short userPrivatekeyLen = privKey.getS(buffer, (short) 0);
-		byte[] userPrivateKey = sharedMemory.m32BytesUserPrivateKey;
-		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, userPrivatekeyLen);
+//		short userPrivatekeyLen = privKey.getS(buffer, (short) 0);
+//		byte[] userPrivateKey = sharedMemory.m32BytesUserPrivateKey;
+//		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, userPrivatekeyLen);
 		
-		// Generate Key Hanle
-		byte[] keyHandle = AesKeyHandle.generateKeyHandle(applicationSha256, userPrivateKey);
+		// Store user's private key locally. Generate Key Handle.
 		
+		byte[] keyHandle = mKeyHandleGenerator.generateKeyHandle(applicationSha256, privKey);
 		{
 			// TODO May be store tuple(KeyHandle, KeyPair) in two Linear EF. They can be mapped by the index.
 		}
