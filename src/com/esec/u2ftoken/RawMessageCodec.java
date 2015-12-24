@@ -25,4 +25,9 @@ public class RawMessageCodec {
 		
 		return signedData;
 	}
+	
+	public static byte[] encodeRegisterResponse(byte[] userPublicKey, 
+			byte[] keyHandle, byte[] attestationCertificate, byte[] signature) {
+		return null;
+	}
 }

@@ -183,12 +183,7 @@ public class U2FToken extends Applet {
 		ECPrivateKey privKey = (ECPrivateKey)userKeyPair.getPrivate();
 		ECPublicKey pubKey = (ECPublicKey)userKeyPair.getPublic();
 		
-//		short userPrivatekeyLen = privKey.getS(buffer, (short) 0);
-//		byte[] userPrivateKey = sharedMemory.m32BytesUserPrivateKey;
-//		Util.arrayCopyNonAtomic(buffer, (short) 0, userPrivateKey, (short) 0, userPrivatekeyLen);
-		
 		// Store user's private key locally. Generate Key Handle.
-		
 		byte[] keyHandle = mKeyHandleGenerator.generateKeyHandle(applicationSha256, privKey);
 		{
 			// TODO May be store tuple(KeyHandle, KeyPair) in two Linear EF. They can be mapped by the index.
@@ -205,6 +200,11 @@ public class U2FToken extends Applet {
 				keyHandle,
 				userPublicKey
 				);
+		
+		// Generate signature use attestation private key
+		Signature signature = Signature.getInstance(Signature.ALG_ECDSA_SHA, false);
+		signature.init(privKey, Signature.MODE_SIGN);
+		short signLen = signature.sign(signedData, (short) 0, (short) signedData.length, buffer, (short) 0);
 		
 		//生成认证公私钥
 //		KeyPair pair = SecP256r1.newKeyPair();

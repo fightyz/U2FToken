@@ -1,12 +1,17 @@
 package com.esec.u2ftoken;
+
+import javacard.security.ECPrivateKey;
+
 /** 
+ * Attestation certificate.
  * @author Yang Zhou 
  * @version 创建时间：2015-12-21 下午04:51:42 
- * Attestation certificate. Store in a variable length record EF.
  */
 public class AttestationCertificates {
 	
 	public static final short CERT_COUNT = 1;
+	
+	public static ECPrivateKey attestationPrivateKey; 
 	
 	/**
 	 * Attestation certificate
