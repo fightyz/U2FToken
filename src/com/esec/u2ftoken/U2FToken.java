@@ -42,6 +42,7 @@ public class U2FToken extends Applet {
 	private static final byte CLA_U2F = 0x00;
 	private static final byte CLA_PROPRIETARY = (byte)0xF0;
 	
+	private static final byte INS_ISO_GET_DATA = (byte)0xC0;
 	private static final byte INS_SET_ATTESTATION_CERT = 0x01;
 	private static final byte INS_SET_ATTESTATION_PRIVATE_KEY = 0x02;
 	
@@ -82,6 +83,8 @@ public class U2FToken extends Applet {
 	 * To store the attestation signature so that it can be handled by GetData
 	 */
 	private static byte[] signatureMessage;
+	
+	private static byte[] registerResponse;
 	
 	private KeyHandleGenerator mKeyHandleGenerator;
 	
@@ -154,6 +157,9 @@ public class U2FToken extends Applet {
 			case (byte) INS_U2F_REGISTER: // U2F register command
 				u2fRegister(apdu, cla, p1, p2, lc);
 				break;
+			
+			case (byte) INS_ISO_GET_DATA:
+				getData(apdu, cla, p1, p2, lc);
 				
 			case (byte) INS_TEST_SEEECPUBKEY:
 				seeECPubKey(apdu, cla, p1, p2, lc);
@@ -241,9 +247,8 @@ public class U2FToken extends Applet {
 		// Store user's private key locally. Generate Key Handle.
 		byte[] keyHandle = mKeyHandleGenerator.generateKeyHandle(applicationSha256, privKey);
 		
-		short userPublicKeyLen = pubKey.getW(buffer, (short) 0);
 		byte[] userPublicKey = sharedMemory.m65BytesUserPublicKey;
-		Util.arrayCopyNonAtomic(buffer, (short) 0, userPublicKey, (short) 0, userPublicKeyLen);
+		pubKey.getW(userPublicKey, (short) 0);
 		
 		// Sign data
 		byte[] signedData = RawMessageCodec.encodeRegistrationSignedBytes(
@@ -254,7 +259,16 @@ public class U2FToken extends Applet {
 				);
 		
 		// Generate signature use attestation private key
-		short signLen = attestationSignature.sign(signedData, (short) 0, (short) signedData.length, signatureMessage, (short) 0);
+		short signLen = attestationSignature.sign(signedData, (short) 0, (short) signedData.length, signatureMessage, (short) 2);
+		Util.setShort(signatureMessage, (short) 0, signLen);
+		
+		// Generate register response
+		registerResponse = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage);
+		Util.setShort(registerResponse, (short) 1, (short) 259);
+		Util.arrayCopyNonAtomic(registerResponse, (short) 3, buffer, (short) 0, (short)256);
+		
+		apdu.setOutgoingAndSend((short) 0, (short) 256);
+		ISOException.throwIt((short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponse.length - 259));
 		
 		//生成认证公私钥
 //		KeyPair pair = SecP256r1.newKeyPair();
@@ -283,6 +297,10 @@ public class U2FToken extends Applet {
 ////		pubKey.
 //		
 //		apdu.setOutgoingAndSend((short) 0, sendlen);
+	}
+	
+	private void getData(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		
 	}
 	
 	private void seeECPubKey(APDU apdu, byte cla, byte p1, byte p2, short lc) {
