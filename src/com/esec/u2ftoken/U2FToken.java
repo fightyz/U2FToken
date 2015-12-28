@@ -268,39 +268,31 @@ public class U2FToken extends Applet {
 		Util.arrayCopyNonAtomic(registerResponse, (short) 3, buffer, (short) 0, (short)256);
 		
 		apdu.setOutgoingAndSend((short) 0, (short) 256);
-		ISOException.throwIt((short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponse.length - 259));
-		
-		//生成认证公私钥
-//		KeyPair pair = SecP256r1.newKeyPair();
-//		pair.genKeyPair();
-//		ECPublicKey pubKey = (ECPublicKey) pair.getPublic();
-//		ECPrivateKey privKey = (ECPrivateKey) pair.getPrivate();
-//		// 生成KeyHandle
-//		//TODO 生成KeyHandle，里面的AppID似乎只能是Client传过来的AppID的hash？
-//		
-////		short sendlen = pubKey.getW(buffer, (short) 0);
-//		short sendlen = privKey.getS(buffer, (short) 0);
-//		
-//		if (GENED == false) {
-//			pair = SecP256r1.newKeyPair();
-//			pair.genKeyPair();
-//			GENED = true;
-//		}
-//		ECPublicKey pubKey = (ECPublicKey) pair.getPublic();
-//		ECPrivateKey privKey = (ECPrivateKey) pair.getPrivate();
-//		// 生成KeyHandle
-//		//TODO 生成KeyHandle，里面的AppID似乎只能是Client传过来的AppID的hash？
-//		
-////		short sendlen = pubKey.getW(buffer, (short) 0);
-//		short sendlen = privKey.getS(buffer, (short) 0);
-////		privKey.get
-////		pubKey.
-//		
-//		apdu.setOutgoingAndSend((short) 0, sendlen);
+		if ((short)(registerResponse.length - 259) > 256) {
+			ISOException.throwIt(ISO7816.SW_BYTES_REMAINING_00);
+		} else if ((short)(registerResponse.length - 259) != 0) {
+			ISOException.throwIt((short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponse.length - 259));
+		}
 	}
 	
 	private void getData(APDU apdu, byte cla, byte p1, byte p2, short lc) {
-		
+		byte[] buffer = apdu.getBuffer();
+		short length = lc;
+		if (length == 0) {
+			short sendOffset = Util.makeShort(registerResponse[1], registerResponse[2]);
+			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, (short) 256);
+			sendOffset += 256;
+			Util.setShort(registerResponse, (short) 1, sendOffset);
+			apdu.setOutgoingAndSend((short) 0, (short) 256);
+			short len = (short)(registerResponse.length - sendOffset);
+			len = len > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + len);
+			ISOException.throwIt(len);
+		} else if (length > 0) {
+			short sendOffset = Util.makeShort(registerResponse[1], registerResponse[2]);
+			short len = (short)(registerResponse.length - sendOffset);
+			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, len);
+			apdu.setOutgoingAndSend((short) 0, len);
+		}
 	}
 	
 	private void seeECPubKey(APDU apdu, byte cla, byte p1, byte p2, short lc) {
