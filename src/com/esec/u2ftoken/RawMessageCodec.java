@@ -29,6 +29,17 @@ public class RawMessageCodec {
 		return signedData;
 	}
 	
+	public static byte[] encodeAuthenticationSignedBytes(byte[] applicationSha256, 
+			byte userPresence, byte[] counter, byte[] challengeSha256) {
+		byte[] signedData = JCSystem.makeTransientByteArray((short)69, JCSystem.CLEAR_ON_DESELECT);
+		short destOff = 0;
+		destOff = Util.arrayCopyNonAtomic(applicationSha256, (short) 0, signedData, (short) 0, (short) 32);
+		signedData[destOff++] = userPresence;
+		destOff = Util.arrayCopyNonAtomic(counter, (short) 0, signedData, destOff, (short) 4);
+		destOff = Util.arrayCopyNonAtomic(challengeSha256, (short) 0, signedData, destOff, (short) 32);
+		return signedData;
+	}
+	
 	/**
 	 * Register response. [0] is apdu type and [1,2] is sent message's offset.  
 	 * @param userPublicKey

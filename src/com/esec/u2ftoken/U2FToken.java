@@ -23,6 +23,9 @@ public class U2FToken extends Applet {
 	private static ECPrivateKey attestationPrivateKey;
 	private static boolean attestationCertificateSet;
 	private static boolean attestationPrivateKeySet;
+	
+	private static final byte CONTROL_CHECK_ONLY = 0x07;
+	private static final byte CONTROL_SIGN = 0x03;
 	/**
 	 * 64 bytes, contains 32 bytes application sha256 and 32 bytes challenge sha256(this is a hash of Client Data)
 	 */
@@ -59,6 +62,8 @@ public class U2FToken extends Applet {
 	public static final byte INS_U2F_CHECK_REGISTER = 0x04; // Registration command that incorporates checking key handles
 	public static final byte INS_U2F_AUTHENTICATE_BATCH = 0x05; // Authenticate/sign command for a batch of key handles
 	
+	public static final short U2F_SW_TEST_OF_PRESENCE_REQUIRED = ISO7816.SW_CONDITIONS_NOT_SATISFIED;
+	
 	private static final short ATTESTATION_SIGNATURE_SIZE = 75;
 	
 	private static final byte[] VERSION = {'U', '2', 'F', '_', 'V', '2'};
@@ -88,7 +93,12 @@ public class U2FToken extends Applet {
 	
 	private KeyHandleGenerator mKeyHandleGenerator;
 	
+	private static byte[] counter;
+	
+	private static boolean counterOverflowed;
+	
 	public U2FToken() {
+		counter = new byte[4];
 		signatureMessage = JCSystem.makeTransientByteArray(ATTESTATION_SIGNATURE_SIZE, JCSystem.CLEAR_ON_DESELECT);
 		
 		mKeyHandleGenerator = new IndexKeyHandle();
@@ -156,6 +166,10 @@ public class U2FToken extends Applet {
 				break;
 			case (byte) INS_U2F_REGISTER: // U2F register command
 				u2fRegister(apdu, cla, p1, p2, lc);
+				break;
+				
+			case (byte) INS_U2F_AUTHENTICATE: // U2F authenticate command
+				u2fAuthenticate(apdu, cla, p1, p2, lc);
 				break;
 			
 			case (byte) INS_ISO_GET_DATA:
@@ -231,12 +245,12 @@ public class U2FToken extends Applet {
 		byte[] buffer = apdu.getBuffer();
 		SharedMemory sharedMemory = SharedMemory.getInstance();
 		
-		byte[] applicationSha256 = sharedMemory.m32BytesApplicationSha256;
-		Util.arrayCopyNonAtomic(buffer, ISO7816.OFFSET_CDATA, applicationSha256, (short) 0, LEN_APPLICATIONSHA256);
-		
 		byte[] challengeSha256 = sharedMemory.m32BytesChallengeSha256;
-		Util.arrayCopyNonAtomic(buffer, (short)(ISO7816.OFFSET_CDATA + LEN_APPLICATIONSHA256),
-				challengeSha256, (short) 0, LEN_CHALLENGESHA256);
+		Util.arrayCopyNonAtomic(buffer, ISO7816.OFFSET_CDATA, challengeSha256, (short) 0, LEN_CHALLENGESHA256);
+		
+		byte[] applicationSha256 = sharedMemory.m32BytesApplicationSha256;
+		Util.arrayCopyNonAtomic(buffer, (short)(ISO7816.OFFSET_CDATA + LEN_CHALLENGESHA256),
+				applicationSha256, (short) 0, LEN_APPLICATIONSHA256);
 		
 		// Generate user authentication key
 		KeyPair userKeyPair = SecP256r1.newKeyPair();
@@ -293,6 +307,79 @@ public class U2FToken extends Applet {
 			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, len);
 			apdu.setOutgoingAndSend((short) 0, len);
 		}
+	}
+	
+	private void u2fAuthenticate(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		
+		if (counterOverflowed) {
+			ISOException.throwIt(ISO7816.SW_FILE_FULL);
+		}
+		
+		apdu.setIncomingAndReceive();
+		byte[] buffer = apdu.getBuffer();
+		SharedMemory sharedMemory = SharedMemory.getInstance();
+		
+		boolean sign = false;
+		byte control = p1;
+		switch(control) {
+		case (byte) CONTROL_CHECK_ONLY:
+			break;
+		case (byte) CONTROL_SIGN:
+			sign = true;
+			break;
+		default:
+			ISOException.throwIt(ISO7816.SW_INCORRECT_P1P2);
+		}
+		
+		byte[] challengeSha256 = sharedMemory.m32BytesChallengeSha256;
+		Util.arrayCopyNonAtomic(buffer, ISO7816.OFFSET_CDATA, challengeSha256, (short) 0, LEN_CHALLENGESHA256);
+		
+		byte[] applicationSha256 = sharedMemory.m32BytesApplicationSha256;
+		Util.arrayCopyNonAtomic(buffer, (short)(ISO7816.OFFSET_CDATA + LEN_CHALLENGESHA256),
+				applicationSha256, (short) 0, LEN_APPLICATIONSHA256);
+		
+		// Verify Key Handle
+		short keyHandleLen = (short) (buffer[(short) ISO7816.OFFSET_CDATA + 64] & 0x00ff);
+		byte[] keyHandle = JCSystem.makeTransientByteArray(keyHandleLen, JCSystem.CLEAR_ON_DESELECT);
+		Util.arrayCopyNonAtomic(buffer, (short) (ISO7816.OFFSET_CDATA + 64 + 1), keyHandle, (short) 0, keyHandleLen);
+		ECPrivateKey privKey = mKeyHandleGenerator.verifyKeyHandle(keyHandle);
+		
+		if (!sign) {
+			ISOException.throwIt(U2F_SW_TEST_OF_PRESENCE_REQUIRED);
+		}
+		
+		// Increase the counter
+        boolean carry = false;
+        JCSystem.beginTransaction();
+        for (byte i=0; i<4; i++) {
+            short addValue = (i == 0 ? (short)1 : (short)0);
+            short val = (short)((short)(counter[(short)(4 - 1 - i)] & 0xff) + addValue);
+            if (carry) {
+                val++;
+            }
+            carry = (val > 255);
+            counter[(short)(4 - 1 - i)] = (byte)val;
+        }
+        JCSystem.commitTransaction();
+        if (carry) {
+            // Game over
+            counterOverflowed = true;
+            ISOException.throwIt(ISO7816.SW_FILE_FULL);
+        }
+        
+        // Authentication response
+        byte userPresence = 0x01;
+        byte[] signedData = RawMessageCodec.encodeAuthenticationSignedBytes(
+        		applicationSha256,
+        		userPresence, 
+        		counter, 
+        		challengeSha256);
+        short outOffset = 0;
+        buffer[outOffset++] = userPresence;
+        outOffset = Util.arrayCopyNonAtomic(counter, (short) 0, buffer, outOffset, (short) 4);
+        authenticateSignature.init(privKey, Signature.MODE_SIGN);
+        outOffset += authenticateSignature.sign(signedData, (short) 0, (short) 69, buffer, outOffset);
+        apdu.setOutgoingAndSend((short) 0, outOffset);
 	}
 	
 	private void seeECPubKey(APDU apdu, byte cla, byte p1, byte p2, short lc) {
