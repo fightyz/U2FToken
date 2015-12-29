@@ -11,6 +11,10 @@ import javacard.security.PrivateKey;
  */
 public class IndexKeyHandle implements KeyHandleGenerator {
 
+	/**
+	 * Store the private key locally.
+	 * @return The index of the private key in local DB.
+	 */
 	public byte[] generateKeyHandle(byte[] applicationSha256, ECPrivateKey privateKey) {
 		SharedMemory sharedMemory = SharedMemory.getInstance();
 		SecretKeyDataBase secretKeyDataBase = SecretKeyDataBase.getInstance();

@@ -24,7 +24,13 @@ public class U2FToken extends Applet {
 	private static boolean attestationCertificateSet;
 	private static boolean attestationPrivateKeySet;
 	
+	/**
+	 * 0x07. Only check the key handle's validation.
+	 */
 	private static final byte P1_CONTROL_CHECK_ONLY = 0x07;
+	/**
+	 * 0x03. Check the key handle's validation and sign. Generate the authentication response.
+	 */
 	private static final byte P1_CONTROL_SIGN = 0x03;
 	/**
 	 * 64 bytes, contains 32 bytes application sha256 and 32 bytes challenge sha256(this is a hash of Client Data)
@@ -43,10 +49,19 @@ public class U2FToken extends Applet {
 	
 	private static final byte CLA_7816 = 0x00;
 	private static final byte CLA_U2F = 0x00;
+	/**
+	 * 0xf0
+	 */
 	private static final byte CLA_PROPRIETARY = (byte)0xF0;
 	
 	private static final byte INS_ISO_GET_DATA = (byte)0xC0;
+	/**
+	 * 0x01. Set the attestation certificate.
+	 */
 	private static final byte INS_SET_ATTESTATION_CERT = 0x01;
+	/**
+	 * 0x02. Set the attestation private key.
+	 */
 	private static final byte INS_SET_ATTESTATION_PRIVATE_KEY = 0x02;
 	
 	public static final byte INS_TEST_ENCRYPT = 0x10;
@@ -64,6 +79,9 @@ public class U2FToken extends Applet {
 	
 	public static final short U2F_SW_TEST_OF_PRESENCE_REQUIRED = ISO7816.SW_CONDITIONS_NOT_SATISFIED;
 	
+	/**
+	 * 75 bytes. The max signature size, maybe some bytes remaining.
+	 */
 	private static final short ATTESTATION_SIGNATURE_SIZE = 75;
 	
 	private static final byte[] VERSION = {'U', '2', 'F', '_', 'V', '2'};
@@ -81,10 +99,6 @@ public class U2FToken extends Applet {
 	
 	private static Signature attestationSignature;
 	private static Signature authenticateSignature;
-	/**
-	 * To store the attestation signature so that it can be handled by GetData
-	 */
-	private static byte[] signatureMessage;
 	
 	private static byte[] registerResponse;
 	
@@ -96,7 +110,6 @@ public class U2FToken extends Applet {
 	
 	public U2FToken() {
 		counter = new byte[4];
-		signatureMessage = JCSystem.makeTransientByteArray(ATTESTATION_SIGNATURE_SIZE, JCSystem.CLEAR_ON_DESELECT);
 		
 		mKeyHandleGenerator = new IndexKeyHandle();
 		
@@ -269,11 +282,13 @@ public class U2FToken extends Applet {
 				);
 		
 		// Generate signature use attestation private key
+		byte[] signatureMessage = sharedMemory.m75BytesSignature;
 		short signLen = attestationSignature.sign(signedData, (short) 0, (short) signedData.length, signatureMessage, (short) 2);
 		Util.setShort(signatureMessage, (short) 0, signLen);
 		
 		// Generate register response
 		registerResponse = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage);
+		// Set the register response's sent offset is now 259, as sent 256 data and 3 header(not be sent).
 		Util.setShort(registerResponse, (short) 1, (short) 259);
 		Util.arrayCopyNonAtomic(registerResponse, (short) 3, buffer, (short) 0, (short)256);
 		
@@ -286,6 +301,9 @@ public class U2FToken extends Applet {
 	}
 	
 	private void getData(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		if (registerResponse[0] != RawMessageCodec.APDU_TYPE_NOT_EXTENDED) {
+			ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
+		}
 		byte[] buffer = apdu.getBuffer();
 		short length = lc;
 		if (length == 0) {
@@ -294,14 +312,14 @@ public class U2FToken extends Applet {
 			sendOffset += 256;
 			Util.setShort(registerResponse, (short) 1, sendOffset);
 			apdu.setOutgoingAndSend((short) 0, (short) 256);
-			short len = (short)(registerResponse.length - sendOffset);
-			len = len > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + len);
-			ISOException.throwIt(len);
+			short remainingLen = (short)(registerResponse.length - sendOffset);
+			remainingLen = remainingLen > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + remainingLen);
+			ISOException.throwIt(remainingLen);
 		} else if (length > 0) {
 			short sendOffset = Util.makeShort(registerResponse[1], registerResponse[2]);
-			short len = (short)(registerResponse.length - sendOffset);
-			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, len);
-			apdu.setOutgoingAndSend((short) 0, len);
+			short remainingLen = (short)(registerResponse.length - sendOffset);
+			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, remainingLen);
+			apdu.setOutgoingAndSend((short) 0, remainingLen);
 		}
 	}
 	
@@ -316,8 +334,7 @@ public class U2FToken extends Applet {
 		SharedMemory sharedMemory = SharedMemory.getInstance();
 		
 		boolean sign = false;
-		byte control = p1;
-		switch(control) {
+		switch(p1) {
 		case (byte) P1_CONTROL_CHECK_ONLY:
 			break;
 		case (byte) P1_CONTROL_SIGN:
