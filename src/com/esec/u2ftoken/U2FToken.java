@@ -17,8 +17,9 @@ import javacard.security.KeyPair;
 import javacard.security.PrivateKey;
 import javacard.security.Signature;
 import javacardx.crypto.Cipher;
+import javacardx.apdu.ExtendedLength;
 
-public class U2FToken extends Applet {
+public class U2FToken extends Applet implements ExtendedLength {
 	
 	private static ECPrivateKey attestationPrivateKey;
 	private static boolean attestationCertificateSet;
@@ -28,10 +29,12 @@ public class U2FToken extends Applet {
 	 * 0x07. Only check the key handle's validation.
 	 */
 	private static final byte P1_CONTROL_CHECK_ONLY = 0x07;
+	
 	/**
 	 * 0x03. Check the key handle's validation and sign. Generate the authentication response.
 	 */
 	private static final byte P1_CONTROL_SIGN = 0x03;
+	
 	/**
 	 * 64 bytes, contains 32 bytes application sha256 and 32 bytes challenge sha256(this is a hash of Client Data)
 	 */
@@ -48,17 +51,27 @@ public class U2FToken extends Applet {
 	private static final short LEN_CHALLENGESHA256 = 32;
 	
 	private static final byte CLA_7816 = 0x00;
+	
+	/**
+	 * 0x00
+	 */
 	private static final byte CLA_U2F = 0x00;
+	
 	/**
 	 * 0xf0
 	 */
 	private static final byte CLA_PROPRIETARY = (byte)0xF0;
 	
+	/**
+	 * 0xc0
+	 */
 	private static final byte INS_ISO_GET_DATA = (byte)0xC0;
+	
 	/**
 	 * 0x01. Set the attestation certificate.
 	 */
 	private static final byte INS_SET_ATTESTATION_CERT = 0x01;
+	
 	/**
 	 * 0x02. Set the attestation private key.
 	 */
@@ -68,7 +81,7 @@ public class U2FToken extends Applet {
 	public static final byte INS_TEST_DECRYPT = 0x20;
 	public static final byte INS_TEST_SEEECPUBKEY = 0x30;
 	public static final byte INS_TEST_VERIFY = 0x40;
-	public static final byte INS_TEST_BOUNCY_CASTLE = 0x50;
+	public static final byte INS_TEST_ECDSA = 0x50;
 	public static final byte INS_TEST_GENERIC = 0x60;
 	
 	private static final byte INS_U2F_REGISTER = 0x01; // Registration command
@@ -113,8 +126,8 @@ public class U2FToken extends Applet {
 		
 		mKeyHandleGenerator = new IndexKeyHandle();
 		
-		attestationSignature = Signature.getInstance(Signature.ALG_ECDSA_SHA, false);
-		authenticateSignature = Signature.getInstance(Signature.ALG_ECDSA_SHA, false);
+		attestationSignature = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
+		authenticateSignature = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
 	}
 	public static void install(byte[] bArray, short bOffset, byte bLength) {
 		// GP-compliant JavaCard applet registration
@@ -150,9 +163,10 @@ public class U2FToken extends Applet {
 				ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
 			}
 		} else if (cla == CLA_U2F) {
-			if (!attestationCertificateSet || !attestationPrivateKeySet) {
-				ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
-			}
+			// TODO uncomment this
+//			if (!attestationCertificateSet || !attestationPrivateKeySet) {
+//				ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
+//			}
 			switch (buf[ISO7816.OFFSET_INS]) {
 			case (byte) INS_TEST_ENCRYPT:
 //				try {
@@ -193,6 +207,11 @@ public class U2FToken extends Applet {
 				verifyKey(apdu, cla, p1, p2, lc);
 				break;
 				
+			case (byte) INS_TEST_ECDSA:
+				testECDSA(apdu, cla, p1, p2, lc);
+				ISOException.throwIt(JCSystem.getVersion());
+				break;
+				
 			case (byte) INS_TEST_GENERIC:
 				byte[] test = genericTest(apdu, cla, p1, p2, lc);
 				Util.arrayCopyNonAtomic(test, (short) 0, buf, (short) 0, (short) test.length);
@@ -222,8 +241,10 @@ public class U2FToken extends Applet {
 		short len = apdu.setIncomingAndReceive();
 		byte[] buffer = apdu.getBuffer();
 		ATTESTATION_CERTIFICATE = new byte[len];
-		Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, ATTESTATION_CERTIFICATE, (short) 0, len);
+		short offset = Util.arrayCopy(buffer, ISO7816.OFFSET_EXT_CDATA, ATTESTATION_CERTIFICATE, (short) 0, len);
 		attestationCertificateSet = true;
+//		Util.arrayCopy(ATTESTATION_CERTIFICATE, (short) 0, buffer, (short) 0, offset);
+//		apdu.setOutgoingAndSend((short) 0, offset);
 	}
 	
 	private void setAttestationPrivateKey(APDU apdu, byte cla, byte p1, byte p2, short lc) {
@@ -437,12 +458,12 @@ public class U2FToken extends Applet {
 		}
 		
 		if (GENED == false) {
-//			pair = SecP256r1.newKeyPair();
-//			try {
-//				pair.genKeyPair();
-//			} catch(CryptoException e) {
-//				ISOException.throwIt(JCSystem.getVersion());
-//			}
+			pair = SecP256r1.newKeyPair();
+			try {
+				pair.genKeyPair();
+			} catch(CryptoException e) {
+				ISOException.throwIt(JCSystem.getVersion());
+			}
 			
 			GENED = true;
 		}
@@ -456,7 +477,7 @@ public class U2FToken extends Applet {
 		byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 		
 		
-		signature = Signature.getInstance(Signature.ALG_ECDSA_SHA, false);
+		signature = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
 		
 		try {
 			signature.init(pair.getPrivate(), Signature.MODE_SIGN);
@@ -468,7 +489,7 @@ public class U2FToken extends Applet {
 //		short sendLen = signature.sign(data, (short) 0, (short) data.length, buffer, (short) 0);
 //		apdu.setOutgoingAndSend((short) 0, sendLen);
 		
-		byte[] certData = new byte[16 + signLen];
+		byte[] certData = new byte[(short)(16 + signLen)];
 		Util.arrayCopyNonAtomic(data, (short) 0, certData, (short) 0, (short) data.length);
 		Util.arrayCopyNonAtomic(signData, (short) 0, certData, (short) data.length, signLen);
 		signature.init(pair.getPublic(), Signature.MODE_VERIFY);
@@ -535,6 +556,12 @@ public class U2FToken extends Applet {
 		test[1] = 0x01;
 		test[2] = 0x02;
 		return test;
+	}
+	
+	private byte[] testECDSA(APDU apdu, byte cla, byte p1, byte p2, short lc) {
+		
+		
+		return null;
 	}
 	
 //	private void decrypt(APDU apdu, byte cla, byte p1, byte p2, short lc) {
