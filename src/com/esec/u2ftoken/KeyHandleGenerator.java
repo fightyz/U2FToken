@@ -10,5 +10,5 @@ import javacard.security.PrivateKey;
 public interface KeyHandleGenerator {
 	
 	public byte[] generateKeyHandle(byte[] applicationSha256, ECPrivateKey privateKey);
-	public ECPrivateKey verifyKeyHandle(byte[] keyHandle);
+	public ECPrivateKey verifyKeyHandle(byte[] keyHandle, byte[] applicationSha256);
 }

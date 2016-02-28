@@ -8,7 +8,7 @@ import javacard.security.PrivateKey;
 /** 
  * @author Yang Zhou 
  * @version 创建时间：2015-12-23 下午07:55:49 
- * Store user's ECC private key
+ * Store user's ECC private key, initially can store 30 keys.
  */
 public class SecretKeyDataBase {
 	
@@ -30,15 +30,15 @@ public class SecretKeyDataBase {
 	}
 	
 	// TODO resize array mPrivateKeys, if counter exceeds the length, considering the JC's system storage left.
-	public short storeSecretKey(ECPrivateKey privateKey) {
+	public byte storeSecretKey(ECPrivateKey privateKey) {
 		mPrivateKeys[counter] = privateKey;
 		counter++;
-		return (short)(counter - 1);
+		return (byte)((counter - 1) & 0x00ff);
 	}
 	
 	public ECPrivateKey getKey(short index) {
-		if (index >= counter) {
-			ISOException.throwIt(U2F_SW_INVALID_KEY_HANDLE);
+		if (index >= counter || index < 0) {
+			return null;
 		}
 		return mPrivateKeys[index];
 	}
