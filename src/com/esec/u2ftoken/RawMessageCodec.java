@@ -55,20 +55,29 @@ public class RawMessageCodec {
 	 * @param signature
 	 * @return
 	 */
-	public static byte[] encodeRegisterResponse(byte[] userPublicKey, 
-			byte[] keyHandle, byte[] attestationCertificate, byte[] signature) {
+	public static short encodeRegisterResponse(byte[] userPublicKey, 
+			byte[] keyHandle, byte[] attestationCertificate, byte[] signature, byte[] buffer, short bufOffset) {
+//		short signatureLen = Util.makeShort(signature[0], signature[1]);
+//		byte[] registerResponse = JCSystem.makeTransientByteArray((short)(3 + 1 + 65 + 1 + keyHandle.length
+//				+ attestationCertificate.length + signatureLen), JCSystem.CLEAR_ON_DESELECT);
+//		registerResponse[0] = APDU_TYPE_NOT_EXTENDED;
+//		registerResponse[3] = REGISTRATION_RESERVED_BYTE_VALUE;
+//		short destOff;
+//		destOff = Util.arrayCopyNonAtomic(userPublicKey, (short) 0, registerResponse, (short) 4, (short) 65);
+//		registerResponse[destOff++] = (byte) keyHandle.length;
+//		destOff = Util.arrayCopyNonAtomic(keyHandle, (short) 0, registerResponse, destOff, (short) keyHandle.length);
+//		destOff = Util.arrayCopyNonAtomic(attestationCertificate, (short) 0, registerResponse, destOff, (short) attestationCertificate.length);
+//		destOff = Util.arrayCopyNonAtomic(signature, (short) 0, registerResponse, destOff, signatureLen);
+//		Util.setShort(registerResponse, (short) 1, (short) 3);
+//		return registerResponse;
+		
 		short signatureLen = Util.makeShort(signature[0], signature[1]);
-		byte[] registerResponse = JCSystem.makeTransientByteArray((short)(3 + 1 + 65 + 1 + keyHandle.length
-				+ attestationCertificate.length + signatureLen), JCSystem.CLEAR_ON_DESELECT);
-		registerResponse[0] = APDU_TYPE_NOT_EXTENDED;
-		registerResponse[3] = REGISTRATION_RESERVED_BYTE_VALUE;
-		short destOff;
-		destOff = Util.arrayCopyNonAtomic(userPublicKey, (short) 0, registerResponse, (short) 4, (short) 65);
-		registerResponse[destOff++] = (byte) keyHandle.length;
-		destOff = Util.arrayCopyNonAtomic(keyHandle, (short) 0, registerResponse, destOff, (short) keyHandle.length);
-		destOff = Util.arrayCopyNonAtomic(attestationCertificate, (short) 0, registerResponse, destOff, (short) attestationCertificate.length);
-		destOff = Util.arrayCopyNonAtomic(signature, (short) 0, registerResponse, destOff, signatureLen);
-		Util.setShort(registerResponse, (short) 1, (short) 3);
-		return registerResponse;
+		buffer[bufOffset++] = REGISTRATION_RESERVED_BYTE_VALUE;
+		short destOff = Util.arrayCopyNonAtomic(userPublicKey, (short)0, buffer, bufOffset, (short)65);
+		buffer[destOff++] = (byte) keyHandle.length;
+		destOff = Util.arrayCopyNonAtomic(keyHandle, (short) 0, buffer, destOff, (short) keyHandle.length);
+		destOff = Util.arrayCopyNonAtomic(attestationCertificate, (short) 0, buffer, destOff, (short) attestationCertificate.length);
+		destOff = Util.arrayCopyNonAtomic(signature, (short) 2, buffer, destOff, signatureLen);
+		return destOff;
 	}
 }
