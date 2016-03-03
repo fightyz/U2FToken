@@ -1,5 +1,7 @@
 # U2FToken
 An U2F Token implementation based on JavaCard
+This U2F Token: <https://github.com/LedgerHQ/ledger-u2f-javacard> cannot pass the NFC self-conformance test in the phase: "U2F_REGISTER, Short APDU, Change BlockSize", as it doesn't handle the situation which Le(BlockSize) is not 256 bytes.
+**My implementation can handle of this case nicely and pass the test.**
 
 ### Install
 1. Complie this Applet and upload to the JavaCard(>3.0)
@@ -18,6 +20,6 @@ An U2F Token implementation based on JavaCard
 1. The authenticate private key is stored in the SE, as there is enough memory to hold thousands of keys.
 2. The key handle consists with index(first 2 bytes) of the authenticate private key and Sha-256 appid(left 32 bytes)
 
-**//TODO**
+**//TODO**  
 1. The database which stores anthenticate private keys can not increase dynamicly now.  
 2. I also want to implement a "wrapped" key handle rather than storing the authenticate private key locally in SE.
