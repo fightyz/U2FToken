@@ -326,15 +326,15 @@ public class U2FToken extends Applet implements ExtendedLength {
 		} else {
 			short blockSize = apdu.setOutgoing();
 			short registerResponseLen = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage, registerResponse, (short)2);
+			registerResponseLen -= 2;
 			// Set the register response's sent offset is now 258, as sent 256 data and 2 header bytes(store the offset).
 			Util.setShort(registerResponse, (short)0, (short)(blockSize + 2));
 			Util.arrayCopyNonAtomic(registerResponse, (short)2, buffer, (short) 0, blockSize);
 			apdu.setOutgoingLength(blockSize);
 			apdu.sendBytes((short)0, blockSize);
-//			ISOException.throwIt(blockSize);
 
 			registerResponseRemaining = (short)(registerResponseLen - blockSize);
-			if (registerResponseRemaining > 256) {
+			if (registerResponseRemaining > blockSize) {
 				ISOException.throwIt(ISO7816.SW_BYTES_REMAINING_00);
 			} else if (registerResponseRemaining > 0) {
 				ISOException.throwIt((short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponseRemaining));
@@ -355,7 +355,7 @@ public class U2FToken extends Applet implements ExtendedLength {
 			registerResponseRemaining -= blockSize;
 			apdu.setOutgoingLength(blockSize);
 			apdu.sendBytes((short)0, blockSize);
-			short remainingLen = registerResponseRemaining > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponseRemaining);
+			short remainingLen = registerResponseRemaining > blockSize ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponseRemaining);
 			ISOException.throwIt(remainingLen);
 			
 		} else if (registerResponseRemaining > 0) {
