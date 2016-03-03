@@ -324,19 +324,20 @@ public class U2FToken extends Applet implements ExtendedLength {
 			short sendLen = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage, buffer, (short)0);
 			apdu.setOutgoingAndSend((short)0, sendLen);
 		} else {
-			short sendLen = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage, registerResponse, (short)2);
-			// Set the register response's sent offset is now 259, as sent 256 data and 3 header(not be sent).
-			Util.setShort(registerResponse, (short)0, (short) 258);
-			Util.arrayCopyNonAtomic(registerResponse, (short)2, buffer, (short) 0, (short)256);
-			apdu.setOutgoingAndSend((short) 0, (short) 256);
+			short blockSize = apdu.setOutgoing();
+			short registerResponseLen = RawMessageCodec.encodeRegisterResponse(userPublicKey, keyHandle, ATTESTATION_CERTIFICATE, signatureMessage, registerResponse, (short)2);
+			// Set the register response's sent offset is now 258, as sent 256 data and 2 header bytes(store the offset).
+			Util.setShort(registerResponse, (short)0, (short)(blockSize + 2));
+			Util.arrayCopyNonAtomic(registerResponse, (short)2, buffer, (short) 0, blockSize);
+			apdu.setOutgoingLength(blockSize);
+			apdu.sendBytes((short)0, blockSize);
+//			ISOException.throwIt(blockSize);
 
-			registerResponseRemaining = (short)(sendLen - 256);
+			registerResponseRemaining = (short)(registerResponseLen - blockSize);
 			if (registerResponseRemaining > 256) {
 				ISOException.throwIt(ISO7816.SW_BYTES_REMAINING_00);
-//				ISOException.throwIt(SW_BYTES_REMAINING);
 			} else if (registerResponseRemaining > 0) {
 				ISOException.throwIt((short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponseRemaining));
-//				ISOException.throwIt((short)(SW_BYTES_REMAINING + remaining));
 			}
 		}
 	}
@@ -344,21 +345,24 @@ public class U2FToken extends Applet implements ExtendedLength {
 	private void getData(APDU apdu, byte cla, byte p1, byte p2, short lc) {
 		byte[] buffer = apdu.getBuffer();
 		short length = lc;
+		short blockSize = apdu.setOutgoing();
 		
-		if (registerResponseRemaining > 256) { // there's still more than 256 bytes to be read
+		if (registerResponseRemaining > blockSize) { // there's still more than Le bytes to be read
 			short sendOffset = Util.makeShort(registerResponse[0], registerResponse[1]);
-			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, registerResponseRemaining);
-			sendOffset += 256;
-			Util.setShort(registerResponse, (short) 1, sendOffset);
-			apdu.setOutgoingAndSend((short) 0, (short) 256);
-			short remainingLen = (short)(registerResponse.length - sendOffset);
-			remainingLen = remainingLen > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + remainingLen);
-//			remainingLen = remainingLen > 256 ? SW_BYTES_REMAINING : (short)(SW_BYTES_REMAINING + remainingLen);
+			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, blockSize);
+			sendOffset += blockSize;
+			Util.setShort(registerResponse, (short)0, sendOffset);
+			registerResponseRemaining -= blockSize;
+			apdu.setOutgoingLength(blockSize);
+			apdu.sendBytes((short)0, blockSize);
+			short remainingLen = registerResponseRemaining > 256 ? ISO7816.SW_BYTES_REMAINING_00 : (short)(ISO7816.SW_BYTES_REMAINING_00 + registerResponseRemaining);
 			ISOException.throwIt(remainingLen);
+			
 		} else if (registerResponseRemaining > 0) {
 			short sendOffset = Util.makeShort(registerResponse[0], registerResponse[1]);
 			Util.arrayCopyNonAtomic(registerResponse, sendOffset, buffer, (short) 0, registerResponseRemaining);
-			apdu.setOutgoingAndSend((short) 0, registerResponseRemaining);
+			apdu.setOutgoingLength(registerResponseRemaining);
+			apdu.sendBytes((short)0, registerResponseRemaining);
 		}
 	}
 	
@@ -572,11 +576,8 @@ public class U2FToken extends Applet implements ExtendedLength {
 	}
 	
 	private byte[] genericTest(APDU apdu, byte cla, byte p1, byte p2, short lc) {
-		byte[] test = JCSystem.makeTransientByteArray((short) 3, JCSystem.CLEAR_ON_DESELECT);
-		test[0] = 0x00;
-		test[1] = 0x01;
-		test[2] = 0x02;
-		return test;
+		ISOException.throwIt(apdu.setOutgoing());
+		return null;
 	}
 	
 	private byte[] testECDSA(APDU apdu, byte cla, byte p1, byte p2, short lc) {
