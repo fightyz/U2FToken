@@ -13,7 +13,7 @@ This U2F Token: <https://github.com/LedgerHQ/ledger-u2f-javacard> cannot pass th
 ### U2F Self-Comformance Test
 * Please access the NFC self-conformance test tool here:  <https://github.com/google/u2f-ref-code/tree/master/u2f-tests/NFC>
 * Download the newly Android Google Authenticator
-* Open <https://crxjs-dot-u2fdemo.appspot.com/> or <https://demo.yubico.com/u2f>
+* Open <https://crxjs-dot-u2fdemo.appspot.com/> or <https://demo.yubico.com/u2f> with the newly Android chrome.
 * Do the Register and Authenticate
 
 ### Some Tips For Implementation
